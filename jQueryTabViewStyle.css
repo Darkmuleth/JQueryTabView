@@ -1,0 +1,283 @@
+﻿
+
+/************************* 定位布局部分 **************************/
+/* 选项卡主区域 */
+.TabMainArea, .TabMainArea *
+{
+    margin: 0;
+    padding: 0;
+    border-style: none;
+    border-width: 0;
+}
+/* 选项卡显示区域 */
+.TabMainArea .TabShowArea
+{
+    overflow: hidden;
+    position: relative;
+    /*width: 300px;  /* 必须设置宽度 */
+}
+/* 选项卡按钮组区域 */
+.TabMainArea .TabButtonArea
+{
+    list-style: none outside none;
+    overflow: auto; /* 主要用于清除内部浮动 */
+    position: relative;
+}
+/* 选项卡组的按钮 */
+.TabMainArea .TabButtonArea > .TabButton
+{
+    position: relative;
+}
+.TabMainArea .TabButtonArea > .TabButton, 
+.TabMainArea .TabRightTools > .TabButton
+{
+    text-align: center;
+    white-space: nowrap;    /* 强制不换行 */
+    overflow: hidden;
+}
+/* 选项卡的所有可点击按钮 */
+.TabMainArea .TabButton, 
+.TabMainArea .TabButton *, 
+.TabMainArea .TabScrollBtn
+{
+    cursor: pointer;
+}
+/* 选项卡按钮的内部包装容器 */
+.TabMainArea .TabButtonPackage
+{
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    vertical-align: middle;
+}
+/* 选项卡按钮的关闭按钮 */
+.TabMainArea .TabCloseButton
+{
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+	overflow: hidden;
+}
+.TabMainArea .TabButtonArea > .TabButton:hover .TabCloseButton
+{
+    display: block;
+}
+/* 主要区域或控件的浮动设置 */
+.TabMainArea .TabLeftTools, 
+.TabMainArea .TabScrollBtn, 
+.TabMainArea .TabShowArea, 
+.TabMainArea .TabButtonArea > .TabButton,
+.TabMainArea .TabRightTools
+{
+    float: left;
+}
+/* 主工具区域 */
+.TabMainArea .TabToolsArea
+{
+    clear: both;
+}
+
+
+/************************* 外观表现部分 **************************/
+/* 选项卡主区域 */
+.TabMainArea
+{
+	width: 100%;
+}
+/* 选项卡显示区域 */
+.TabMainArea .TabShowArea
+{
+    /*background-color: #78b;*/
+	border-bottom: 1px solid #e5ffff;
+}
+/* 选项卡按钮组区域 */
+.TabMainArea .TabButtonArea
+{
+    width: 500px;
+    background-color: transparent;
+}
+.TabMainArea .TabButton
+{
+    /*border: 1px solid transparent;
+    border-bottom-color: #78b;*/
+    border: 1px solid #78b;
+    /*border-radius: 4px; /*圆角*/
+    
+    margin-right: 5px;
+    padding: 3px;
+    font-size: 13px;
+    width: 85px;
+    height: 16px;
+    background-color: #b1daff;
+}
+/* 选项卡组的按钮 */
+.TabMainArea .TabButton:hover
+{
+	background-color: #bff;
+}
+.TabMainArea .TabButtonArea > .TabButton
+{
+    border: 1px solid transparent;
+    border-left-color: #78b;
+    border-right-color: #78b;
+    background-image: url("image/tab_bg_01.png");
+    background-repeat: repeat;
+    background-position: 0 21px;
+	/*background-image: url("image/tab_view_bg_01.png");*/
+}
+.TabMainArea .TabButtonArea > .TabButton:hover
+{
+    background-position: 0 -1px;
+	/*background-image: url("image/tab_view_bg_02.png");*/
+}
+/* 激活的选项卡按钮 */
+.TabMainArea .TabButtonArea > .TabActive
+{
+	background-color: #e5ffff;
+	/*border-bottom-color: transparent;*/
+    background-position: 0 43px;
+	/*background-image: url("image/tab_view_bg_02.png");*/
+}/*
+.TabMainArea .TabButtonArea > .TabButton:active
+{
+    background-position: 0 44px;
+}*/
+/* 选项卡按钮的图标 */
+.TabMainArea .TabButtonPackage .TabIcon
+{
+	position: relative;
+	left: 0;
+	width: 15px;
+	height: 15px;
+}
+/* 选项卡按钮的图像 */
+.TabMainArea .TabButtonPackage .TabImage
+{
+	width: 100%;
+	height: 100%;
+}
+/* 选项卡按钮的关闭按钮 */
+.TabMainArea .TabCloseButton
+{
+	/*font-size: 13px;
+	font-weight: normal;
+	font-family: Fantasy;
+	line-height: 11px;*/
+	/*line-height: 9pt;*/
+	font: normal 13px/11px Fantasy;
+	text-indent: -2px;
+    width: 9px;
+    height: 9px;
+    border: 1px solid #78b;
+    /*border: 1px solid transparent;*/
+	color: #78b;
+    background-color: #fff;
+	background-image: url("image/tab_bg_02.png");
+	background-repeat: no-repeat;
+	background-position: -1px -81px;
+}
+.TabMainArea .TabCloseButton:hover
+{
+	text-decoration: blink; /* 闪动文字 火狐支持 */
+	color: #fff;
+	border-color: Red;
+    background-color: Red;
+	background-position: -23px -81px;
+}
+/* 展开/收起按钮 */
+.TabMainArea .TabExpanBtn
+{
+	text-align: center;
+	font: bold 10px Fantasy;
+	color: #348;
+}
+/* 添加按钮 */
+.TabMainArea .TabButton.TabAddButton
+{
+	border-color: transparent;
+	background-image: url("image/tab_bg_02.png");
+	background-repeat: no-repeat;
+	background-position: -1px -49px;
+}
+.TabMainArea .TabButton.TabAddButton:hover
+{
+	background-position: -1px -1px;
+}
+.TabMainArea .TabButton.TabAddButton:active
+{
+	background-position: -1px 0px;
+}
+/* 选项卡的滚动按钮 */
+.TabMainArea .TabScrollBtn
+{
+    width: 15px;
+    height: 100%;
+    border: 1px solid #78b;
+    background-color: #7af;
+}
+.TabMainArea .TabScrollBtn:hover
+{
+    background-color: #85efff;
+}
+.TabMainArea .TabScrollBtn:active
+{
+	background-color: #fe8;
+}
+/* 更改滚动按钮中的文本被选中时的文本背景颜色 */
+.TabMainArea .TabScrollBtn::selection { background:transparent;}
+.TabMainArea .TabScrollBtn::-moz-selection { background:transparent;}
+.TabMainArea .TabScrollBtn::-webkit-selection { background:transparent;} 
+
+.TabMainArea .TabRightBtn
+{
+	background-image: url("image/tab_bg_02.png");
+	background-repeat: no-repeat;
+	background-position: -1px -101px;
+}
+.TabMainArea .TabRightBtn:hover
+{
+	background-position: -18px -101px;
+}
+.TabMainArea .TabRightBtn:active
+{
+	background-position: -1px -100px;
+}
+.TabMainArea .TabLeftBtn
+{
+	background-image: url("image/tab_bg_02.png");
+	background-repeat: no-repeat;
+	background-position: -1px -125px;
+}
+.TabMainArea .TabLeftBtn:hover
+{
+	background-position: -18px -125px;
+}
+.TabMainArea .TabLeftBtn:active
+{
+	background-position: -1px -124px;
+}
+/* 展开/收起按钮 */
+.TabMainArea .TabExpanBtn
+{
+	background-image: url("image/tab_bg_02.png");
+	background-repeat: repeat-x;
+	background-position: 1px -151px;
+}
+.TabMainArea .TabExpanBtn:hover
+{
+	background-position: 1px -175px;
+}
+.TabMainArea .TabExpanBtn:active
+{
+	background-position: 1px -174px;
+}
+/* 文本框 */
+.TabMainArea .TabButtonArea > .TabTemporaryBtn input[type='text']
+{
+	cursor: text;
+	width:100%;
+	height:100%;
+	border-style:none;
+	background-color:#fff;
+}
