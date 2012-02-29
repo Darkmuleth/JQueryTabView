@@ -109,7 +109,7 @@
                 closeMsg: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
-                // function(api, event){}
+                // onClick: function(api, event){}
                 // api: 插件的api引用
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
@@ -164,7 +164,7 @@
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
             /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
-            /// function(api, event){}
+            /// onTabClick: function(api, event){}
             /// api: 插件的api引用
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
@@ -176,7 +176,7 @@
             /// 所有选项卡按钮的默认'关闭后'事件
             onTabClosed: null,
             /// 当使用'添加按钮'添加一个选项卡后触发, 返回false将可以阻止插件创建选项卡
-            /// function(tab, api){}
+            /// onAddClick: function(tab, api){}
             /// tab: 选项卡设置属性,利用这个对象可以构造一个选项卡,
             ///       点击添加按钮后在出现的文本框中输入的值将作为tab的caption属性值
             /// api: 插件的api引用
@@ -188,7 +188,7 @@
             /// 控件结构开始初始化 事件
             onInit: null,
             /// 控件准备完毕 事件
-            /// function(api){}
+            /// onReady: function(api){}
             /// api: 插件的api引用
             onReady: null
         }

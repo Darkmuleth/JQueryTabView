@@ -76,7 +76,12 @@
 {
     clear: both;
 }
-
+/* 选项卡面板区域 */
+.TabMainArea .TabPanelsArea
+{
+	position: relative;
+	overflow: hidden;
+}
 
 /************************* 外观表现部分 **************************/
 /* 选项卡主区域 */
@@ -85,11 +90,10 @@
 	width: 100%;
 }
 /* 选项卡显示区域 */
-.TabMainArea .TabShowArea
+/*.TabMainArea .TabShowArea
 {
-    /*background-color: #78b;*/
 	border-bottom: 1px solid #e5ffff;
-}
+}*/
 /* 选项卡按钮组区域 */
 .TabMainArea .TabButtonArea
 {
@@ -98,10 +102,7 @@
 }
 .TabMainArea .TabButton
 {
-    /*border: 1px solid transparent;
-    border-bottom-color: #78b;*/
     border: 1px solid #78b;
-    /*border-radius: 4px; /*圆角*/
     
     margin-right: 5px;
     padding: 3px;
@@ -123,20 +124,16 @@
     background-image: url("image/tab_bg_01.png");
     background-repeat: repeat;
     background-position: 0 21px;
-	/*background-image: url("image/tab_view_bg_01.png");*/
 }
 .TabMainArea .TabButtonArea > .TabButton:hover
 {
     background-position: 0 -1px;
-	/*background-image: url("image/tab_view_bg_02.png");*/
 }
 /* 激活的选项卡按钮 */
 .TabMainArea .TabButtonArea > .TabActive
 {
 	background-color: #e5ffff;
-	/*border-bottom-color: transparent;*/
     background-position: 0 43px;
-	/*background-image: url("image/tab_view_bg_02.png");*/
 }/*
 .TabMainArea .TabButtonArea > .TabButton:active
 {
@@ -159,17 +156,11 @@
 /* 选项卡按钮的关闭按钮 */
 .TabMainArea .TabCloseButton
 {
-	/*font-size: 13px;
-	font-weight: normal;
-	font-family: Fantasy;
-	line-height: 11px;*/
-	/*line-height: 9pt;*/
 	font: normal 13px/11px Fantasy;
 	text-indent: -2px;
     width: 9px;
     height: 9px;
     border: 1px solid #78b;
-    /*border: 1px solid transparent;*/
 	color: #78b;
     background-color: #fff;
 	background-image: url("image/tab_bg_02.png");
@@ -178,7 +169,7 @@
 }
 .TabMainArea .TabCloseButton:hover
 {
-	text-decoration: blink; /* 闪动文字 火狐支持 */
+	text-decoration: blink; /* 闪动文字 火狐 */
 	color: #fff;
 	border-color: Red;
     background-color: Red;
@@ -279,4 +270,15 @@
 	height:100%;
 	border-style:none;
 	background-color:#fff;
+}
+/* 主工具区域 */
+.TabMainArea .TabToolsArea
+{
+	width: 100%;
+}
+/* 选项卡面板区域 */
+.TabMainArea .TabPanelsArea
+{
+	width: 100%;
+	border-top: 1px solid #e5ffff;
 }
