@@ -11,14 +11,14 @@
 ; (function ($) {
     
     var S;
-    function Console(msg, self){
+    function Console(msg, view){
         ///<summary>
         /// 控制台调用函数
         ///</summary>
         if(msg){
-            if(self){
-                if(S.GetConfig(self).option.debug == false){ return;}
-                msg = S.GetTabViewUID(self) + " > " + msg; }
+            if(view){
+                if(S.GetConfig(view).option.debug == false){ return;}
+                msg = S.GetTabViewUID(view) + " > " + msg; }
             Console.log(msg); }
     };
     Console.log = function(msg){
