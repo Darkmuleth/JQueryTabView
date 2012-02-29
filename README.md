@@ -82,15 +82,17 @@
 **插件默认配置如下：**
 
 ``` javascript
-	{
+        {
             /// 选项卡按钮对象(多个按钮用数组表示)
             tabs: {
                 // 选项卡的CSS编号值(符合CSS命名规则的字符串)
                 cssId: null,
                 // 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开
                 cssClass: null,
-                // 选项卡文本, 同时也是鼠标悬停时显示的内容
+                // 选项卡文本
                 caption: "Tab Button",
+                // 当鼠标悬停在选项卡按钮之上时显示的内容, 如果不设置则其值等于caption
+                title: null,
                 // 选项卡的图像(值为图片的url,优先级高于caption,二者不会同时显示)
                 image: null,
                 // 选项卡的图标(值为图片的url)
