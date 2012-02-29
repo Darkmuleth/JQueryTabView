@@ -15,28 +15,28 @@
 
 **最简使用方法：**
 
-*1.* 导入jQuery框架：
+1. 导入jQuery框架：
 
-~~~ html
+	~~~ html
 	<script type="text/javascript" src="../jquery.js"></script>
-~~~
+	~~~
 
-*2.* 导入JQueryTabView的CSS样式表和javascript脚本：
+2. 导入JQueryTabView的CSS样式表和javascript脚本：
 
-~~~ html
+	~~~ html
 	<link type="text/css" rel="Stylesheet" href="../jQueryTabViewStyle.css" />
 	<script type="text/javascript" src="../JQueryTabView.js"></script>
-~~~
+	~~~
 
-*3.* 在页面中准备一个HTML容器：
+3. 在页面中准备一个HTML容器：
 
-~~~ html
+	~~~ html
 	<div id="TabView" class="TabViews"></div>
-~~~
+	~~~
 
-*4.* 编写以下脚本：
+4. 编写以下脚本：
 
-``` html
+	``` html
 	<script type="text/javascript">
 	$(document).ready(function(){
 		$("#TabView").JQueryTabView();
@@ -44,7 +44,7 @@
 		//$(".TabViews").JQueryTabView();
 	});
 	</script>
-```
+	```
 
 **使用自定义配置**
 
