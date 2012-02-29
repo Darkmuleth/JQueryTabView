@@ -14,7 +14,6 @@
 {
     overflow: hidden;
     position: relative;
-    /*width: 300px;  /* 必须设置宽度 */
 }
 /* 选项卡按钮组区域 */
 .TabMainArea .TabButtonArea
