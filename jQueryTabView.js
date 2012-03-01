@@ -97,6 +97,8 @@
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
             moveOffset: -100,
+            /// 按住左右滚动按钮时选项卡按钮组的移动速率 (像素/毫秒)
+            moveSpeed: 0.25,
             /// 不同行的选项卡的行距(像素), 只在scrollable为false时有效
             lineHeight: 5,
             /// 选项卡的各种提示信息
@@ -740,77 +742,10 @@
                     default:
                         btn = $("<li class='TabButton'></li>");
                         break;}
-                var tabPack = $("<div class='TabButtonPackage'></div>");
-                
-                btn.append(tabPack);
 
-                // 重置样式
-                btn.css("margin", "0");
-                btn.css("padding", "3px");
+                // 设置内部元素
+                C.SetTabElement(btn, tab);
 
-                if(C.option.scrollable == false){
-                    // 添加行距
-                    var height = C.option.lineHeight;
-                    if((typeof height) != "number" || isNaN(height)){
-                        C.option.lineHeight = S.defaultOption.lineHeight; }
-                    btn.css("margin-bottom", "" + C.option.lineHeight + "px");
-                }
-                // 对特殊按钮不提供以下功能
-                if(typeof tab.type == "undefined"){
-                    // 添加id
-                    if(typeof tab.cssId == "string"){
-                        btn.attr("id", tab.cssId.replace("#").replace("."));
-                    }else if((C.option.autoTabId === true) && (typeof C.option.tabIdText == "string")){
-                        btn.attr("id", C.option.tabIdText.replace("#").replace(".") + C.TabArray.length);
-                    }
-                    // 添加class
-                    if(typeof tab.cssClass == "string"){
-                        btn.addClass(tab.cssClass.replace("#").replace("."));
-                    }
-                    if(typeof C.option.tabCssClass == "string"){
-                        btn.addClass(C.option.tabCssClass.replace("#").replace("."));
-                    }
-                    // 添加选项卡UID
-                    btn.data(S.Tag.TabUID, C.option.name + "_Tab_" + (C.TabCount++));
-                    // 保存设置对象
-                    S.SetTabOption(btn, tab);
-                }
-
-                // 添加选项卡图标
-                if (tab.icon != null) {
-                    tabPack.append("<img class='TabIcon' alt='-' src='" + tab.icon + "' />");
-                }
-                // 检查caption属性
-                if(!S.isType(tab.caption, "String") && !S.isType(tab.caption, "Number")){
-                    tab.caption = S.defaultOption.tabs.caption;
-                }
-                // 优先添加图片
-                if (tab.image != null) {
-                    // 去除内边距
-                    btn.css("padding", "0");
-                    tabPack.append("<img class='TabImage' alt='" + tab.caption + "' src='" + tab.image + "' />");
-                // 如果不是特殊选项卡
-                } else if(S.isType(tab.type, "Undefined")) {
-                    // 添加选项卡文本
-                    tabPack.append("<label class='TabCaption'>" + tab.caption + "</label>");
-                // 如果是特殊选项卡
-                }else if(!S.isType(tab.type, "Undefined")){
-                    btn.addClass(tab.type);
-                    // 绑定一个特殊标记
-                    btn.data(S.Tag.TabSpec, S.Tag.TabSpec);
-                    btn.addClass(S.Tag.TabSpec);
-                }
-                // 添加鼠标悬停提示信息
-                if(!S.isType(tab.title, "String") && !S.isType(tab.title, "Number")){
-                    tab.title = tab.caption;
-                }
-                btn.attr("title", tab.title);
-                // 添加排序序号
-                var index = tab.index;
-                if(!S.isType(index, "Number") || (index < 0)){
-                    index = S.defaultOption.tabs.index;
-                }
-                btn.data(S.Tag.TabIndex, index);
                 // 绑定事件
                 btn.click(function (event) {
                     // 如果使用者点击的是 关闭按钮
@@ -857,6 +792,108 @@
 
                 return btn;
             };
+            TabConfig.prototype.SetTabElement = function (btn, tab) {
+                ///<summary>
+                /// 根据指定选项卡配置对指定的按钮元素进行设置
+                ///</summary>
+                // 类对象的句柄
+                var C = this;
+
+                var tabPack = btn.children(".TabButtonPackage");
+                if(tabPack.length <= 0){
+                    btn.html("");
+                    tabPack = $("<div class='TabButtonPackage'></div>");
+                    btn.append(tabPack);
+                }
+
+                // 重置样式
+                btn.css("margin", "0");
+                btn.css("padding", "3px");
+
+                if(C.option.scrollable == false){
+                    // 添加行距
+                    btn.css("margin-bottom", "" + C.option.lineHeight + "px");
+                }
+                // 对特殊按钮不提供以下功能
+                if(S.isType(tab.type, "Undefined")){
+                    // 添加id
+                    if(S.isType(tab.cssId, "String")){
+                        btn.attr("id", tab.cssId.replace("#").replace("."));
+                    }else if((C.option.autoTabId === true) && S.isType(C.option.tabIdText, "String")){
+                        btn.attr("id", C.option.tabIdText.replace("#").replace(".") + C.TabArray.length);
+                    }
+                    // 添加class
+                    if(S.isType(tab.cssClass, "String")){
+                        btn.addClass(tab.cssClass.replace("#").replace("."));
+                    }
+                    if(S.isType(C.option.tabCssClass, "String")){
+                        btn.addClass(C.option.tabCssClass.replace("#").replace("."));
+                    }
+                    // 添加选项卡UID
+                    btn.data(S.Tag.TabUID, C.option.name + "_Tab_" + (C.TabCount++));
+                    // 保存设置对象
+                    S.SetTabOption(btn, tab);
+                }
+
+                // 添加选项卡图标
+                if (tab.icon != null) {
+                    tabPack.append("<img class='TabIcon' alt='-' src='" + tab.icon + "' />");
+                }
+                // 检查caption属性
+                if(!S.isType(tab.caption, "String") && !S.isType(tab.caption, "Number")){
+                    tab.caption = S.defaultOption.tabs.caption;
+                }
+                // 优先添加图片
+                if (tab.image != null) {
+                    // 去除内边距
+                    btn.css("padding", "0");
+                    tabPack.append("<img class='TabImage' alt='" + tab.caption + "' src='" + tab.image + "' />");
+                // 如果不是特殊选项卡
+                } else if(S.isType(tab.type, "Undefined")) {
+                    // 添加选项卡文本
+                    tabPack.append("<label class='TabCaption'>" + tab.caption + "</label>");
+                // 如果是特殊选项卡
+                }else if(!S.isType(tab.type, "Undefined")){
+                    btn.addClass(tab.type);
+                    // 绑定一个特殊标记
+                    btn.data(S.Tag.TabSpec, S.Tag.TabSpec);
+                    btn.addClass(S.Tag.TabSpec);
+                }
+                // 添加鼠标悬停提示信息
+                if(!S.isType(tab.title, "String") && !S.isType(tab.title, "Number")){
+                    tab.title = tab.caption;
+                }
+                btn.attr("title", tab.title);
+                // 添加排序序号
+                var index = tab.index;
+                if(!S.isType(index, "Number") || (index < 0)){
+                    index = S.defaultOption.tabs.index;
+                }
+                btn.data(S.Tag.TabIndex, index);
+
+                return btn;
+            };
+            TabConfig.prototype.CreatePanelElement = function(tabBtn, tab){
+                ///<summary>
+                /// 创建一个面板元素,并不实际放入页面
+                ///</summary>
+                if(S.isType(tab, "Undefined")){
+                    tab = S.GetTabOption(tabBtn);
+                }
+                // 对特殊按钮不提供面板功能
+                //if(S.isType(tab, "Undefined") || S.isType(tab, "Null")){ return null;}
+                if(tab == null || !S.isType(tab.type, "Undefined")){ return null;}
+
+                var panel = $("<div class='TabPanel'></div>");
+
+                // 设置面板的UID
+                panel.data(S.Tag.TabUID, tabBtn.data(S.Tag.TabUID));
+
+                var pack = $("<div class='TabPanelPackage'></div>");
+                panel.append(pack);
+
+                return panel;
+            };
             TabConfig.prototype.SetElementHeight = function (ele, height) {
                 ///<summary>
                 /// 设置指定元素的高度
@@ -869,13 +906,14 @@
                 ///</summary>
                 // 如果没有给定宽度,则按照选项卡按钮的方式来设置宽度
                 if (!width) {
-                    if (isHeight == true) this.SetTabHeight(ele);
-                    else this.SetTabWidth(ele);
+                    if (isHeight == true){
+                        this.SetTabHeight(ele);
+                    }else{ this.SetTabWidth(ele);}
                 } else {
                     // 实际宽度设为 减去左右边框和内边距后的值
                     //width -= S.GetStyleWidth(ele);
                     var prop = "width";
-                    if (isHeight == true) prop = "height";
+                    if (isHeight == true){ prop = "height";}
                     ele.css(prop, "" + width + "px");
                 }
                 return width;
@@ -929,8 +967,8 @@
                 } else {
                     this.AddTabButton(tabs, index);
                 }
-                if(typeof index == "boolean") noRefresh = index;
-                if(noRefresh !== true) this.RefreshTabButton();
+                if(typeof index == "boolean"){ noRefresh = index;}
+                if(noRefresh !== true){ this.RefreshTabButton();}
                 CC("Add Tab > 添加选项卡按钮完成\n\n", this.TabView);
             };
             TabConfig.prototype.RefreshTabButton = function(){
@@ -1102,6 +1140,7 @@
                 }
                 CC("创建内部'添加按钮', 当前显示区域宽度: " + width, view);
             };
+            //////////////////////////////////////
             TabConfig.prototype.MoveTabsAfterUpdate = function () {
                 ///<summary>
                 /// 检查更新(添加/移除)选项卡组后是否需要滚动选项卡组, 需要移动则返回true
@@ -1384,25 +1423,6 @@
                 this.TabsMoveObj.toString(this.TabView, "刷新选项卡组移动数据信息,");
                 //CC("刷新选项卡组移动数据信息, 选项卡组最大可偏移横坐标: " + this.TabsMoveObj.MinOffset, this.TabView);
             };
-            TabConfig.prototype.InitTabsMoveOffset = function () {
-                ///<summary>
-                /// 初始化选项卡按钮组的步进距离
-                ///</summary>
-                var C = this;
-                var op = C.option;
-                if (op.scrollable == true) {
-                    if (S.isType(op.moveOffset, "Number")) {
-                        if (op.moveOffset == 0) {
-                            //op.moveOffset = -50;
-                            op.moveOffset = S.defaultOption.moveOffset;
-                        } else if (op.moveOffset > 0) {
-                            op.moveOffset = -op.moveOffset; }
-                        C.TabsMoveObj.StepDistance = op.moveOffset; }
-
-                    C.RefreshTabsWidth();
-                }
-                return C.TabsMoveObj.StepDistance;
-            };
             TabConfig.prototype.UseScroll = function (use) {
                 ///<summary>
                 /// 使用滚动功能
@@ -1420,13 +1440,10 @@
                     // 移除行距
                     tabs.children(".TabButton").css("margin-bottom", "0");
                     
-                    // 如果还没有初始化过步进距离
-                    if (C.TabsMoveObj.StepDistance != C.option.moveOffset) {
-                        // 初始化步进距离
-                        C.InitTabsMoveOffset();
-                    }else{
-                        // 刷新
-                        C.RefreshTabsWidth(); }
+                    // 设置步进距离
+                    C.TabsMoveObj.StepDistance = C.option.moveOffset;
+                    // 刷新
+                    C.RefreshTabsWidth();
 
                     var act = tabs.children(".TabActive").eq(0);
                     var x = C.GetNowOffset(0);
@@ -1454,9 +1471,6 @@
                     tabs.css("left", 0);
                     
                     // 添加行距
-                    var height = C.option.lineHeight;
-                    if((typeof height) != "number" || isNaN(height)){
-                        C.option.lineHeight = S.defaultOption.lineHeight; }
                     tabs.children(".TabButton").css("margin-bottom", "" + C.option.lineHeight + "px");
                     
                 }
@@ -1706,7 +1720,8 @@
                             // 设置'连续移动'标记
                             obj.data("IsTabGoTo", "true");
                             // 以指定速度(每毫秒0.25像素)移动到最左边
-                            C.MoveToPosition(position, 0.25, true);
+                            //C.MoveToPosition(position, 0.25, true);
+                            C.MoveToPosition(position, op.moveSpeed, true);
                         // 用户按住鼠标400毫秒后开始连续移动
                         }, 400));
                     }
@@ -1786,14 +1801,16 @@
             ///</summary>
             
             // 检查使用者是否提供了设置对象
-            if(typeof setting == "undefined"){ setting = {};}
+            if(S.isType(setting, "Undefined")){ setting = {};}
             // 执行初始化事件函数
             S.Exec(setting.onInit, null, this);
 
             $.fn.JQueryTabView.toString = function () { return "JQuery选项卡 \n\tAuthor: Darkmuleth"; };
-
+            
+            // 默认设置
+            var dfop = S.defaultOption;
             // 默认插件设置
-            $.fn.JQueryTabView.defaultOption = S.Copy(S.defaultOption);
+            $.fn.JQueryTabView.defaultOption = S.Copy(dfop);
 
             var op = S.ExtendOption(setting);
             if (op == null) {
@@ -1802,16 +1819,35 @@
             }
             ////////////// 对插件设置进行检查 //////////
             // 如果使用者没有添加选项卡
-            if(typeof setting.tabs == "undefined"){ op.tabs = null; }
+            if(S.isType(setting.tabs, "Undefined")){ op.tabs = null; }
             // 检查最小高度
-            if ((typeof op.tabMinHeight) != "number"){
+            if (!S.isType(op.tabMinHeight, "Number")){
                 op.tabMinHeight = S.defaultOption.tabMinHeight;
             }else if (op.tabMinHeight < 0){ op.tabMinHeight = Math.abs(op.tabMinHeight);}
             // 检查最小宽度
-            if ((typeof op.tabMinWidth) != "number"){
+            if (!S.isType(op.tabMinWidth, "Number")){
                 op.tabMinWidth = S.defaultOption.tabMinWidth;
             }else if (op.tabMinWidth < 0){ op.tabMinWidth = Math.abs(op.tabMinWidth);}
-            
+            // 检查步进距离
+            if (!S.isType(op.moveOffset, "Number") || (op.moveOffset === 0)) {
+                op.moveOffset = dfop.moveOffset;
+            }else if(op.moveOffset < 0){
+                op.moveOffset = Math.abs(op.moveOffset);
+            }
+            // 检查移动速度
+            if(!S.isType(op.moveSpeed, "Number") || (op.moveSpeed === 0)){
+                op.moveSpeed = dfop.moveSpeed;
+            }else if(op.moveSpeed < 0){
+                op.moveSpeed = Math.abs(op.moveSpeed);
+            }
+            //检查间距
+            if(!S.isType(op.spacing, "Number")){
+                op.spacing = dfop.spacing;
+            }
+            // 检查行距
+            if(!S.isType(op.lineHeight, "Number")){
+                op.lineHeight = dfop.lineHeight;
+            }
             
             // 插件目标区域
             var Target = $(this).addClass("TabParent");
@@ -1829,11 +1865,8 @@
             // 注册
             S.Registration(view);
 
-            // 默认设置
-            var dfop = S.defaultOption;
-
             // 设置插件的uid
-            if(!op.name || ((typeof op.name) != "string")) op.name = dfop.name;
+            if(!op.name || !S.isType(op.name, "String")){ op.name = dfop.name;}
             view.data(S.Tag.ViewUID, op.name + "_" + S.TabViewCount++ );
             CC("插件用户配置扩展完成, 获取UID: " + S.GetTabViewUID(view), view);
             

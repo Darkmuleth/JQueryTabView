@@ -82,6 +82,19 @@
 	position: relative;
 	overflow: hidden;
 }
+/* 选项卡面板 */
+.TabMainArea .TabPanel
+{
+	position: absolute;
+}
+/* 选项卡面板的内部包装容器 */
+.TabMainArea .TabPanel > .TabPanelPackage
+{
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
 
 /************************* 外观表现部分 **************************/
 /* 选项卡主区域 */

@@ -148,6 +148,8 @@
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
             moveOffset: -100,
+            /// 按住左右滚动按钮时选项卡按钮组的移动速率 (像素/毫秒)
+            moveSpeed: 0.25,
             /// 不同行的选项卡的行距(像素), 只在scrollable为false时有效
             lineHeight: 5,
             /// 选项卡的各种提示信息
