@@ -657,16 +657,16 @@
                 ///<summary>
                 /// 获取指定tab对象在TabArray的数组中的序号,没有则返回-1
                 ///</summary>
-                var i = -1;
-                var has = false;
-                var l = this.TabArray.length;
-                if (l > 0) {
-                    for (i = l - 1; i >= 0 ; i--) {
-                        //if(this.TabArray[i].is(tabBtn)){    // 此.is()函数只有jQuery 1.6 及以上版本才能判断选择器以外的元素
-                        if (this.TabArray[i].get(0) == $(tabBtn).get(0)) {
-                            has = true;
-                            break; } } }
-                return has ? i : -1;
+                var index = -1;
+                $.each(this.TabArray, function(key, val){
+                    //if(this.TabArray[i].is(tabBtn)){    // 此.is()函数只有jQuery 1.6 及以上版本才能判断选择器以外的元素
+                    if(val.get(0) == $(tabBtn).get(0)){
+                        index = key;
+                        // 返回false中断each循环
+                        return false;
+                    }
+                });
+                return index;
             };
             TabConfig.prototype.GetTabObject = function (index) {
                 ///<summary>
@@ -679,6 +679,22 @@
                 }
                 return tabBtn;
             };
+            TabConfig.prototype.GetPanelObject = function ( tabBtn ) {
+                ///<summary>
+                /// 根据指定选项卡按钮获取对应的面板jQuery对象
+                ///</summary>
+                tabBtn = $(tabBtn);
+                if(S.isType(tabBtn.data(S.Tag.TabUID), "Undefined")){ return null;}
+                var panel = null;
+                $.each(this.PanelArray, function(key, val){
+                    if(!S.isType(val.data(S.Tag.TabUID), "Undefined") 
+                        && (val.data(S.Tag.TabUID) === tabBtn.data(S.Tag.TabUID))){
+                        panel = val;
+                        return false;
+                    }
+                });
+                return panel;
+            };
             TabConfig.prototype.ExecSelfFun = function (fun, args) {
                 ///<summary>
                 /// 以插件对象为执行者执行指定函数
@@ -689,14 +705,13 @@
                 ///<summary>
                 /// 获取处于激活状态的选项卡按钮
                 ///</summary>
-                var tabs = this.TabArray;
                 var tabBtn = null;
-                for(var i=0,l=tabs.length; i<l; i++){
-                    if(tabs[i].hasClass("TabActive")){
-                        tabBtn = tabs[i];
-                        break;
+                $.each(this.TabArray, function(key, val){
+                    if(val.hasClass("TabActive")){
+                        tabBtn = val;
+                        return false;
                     }
-                }
+                });
                 return tabBtn;
             };
             TabConfig.prototype.SetActiveTab = function (tabBtn) {
@@ -712,6 +727,31 @@
                 //C.TabView.find(".TabButton").removeClass("TabActive");
                 $(".TabButton", C.TabView).removeClass("TabActive");
                 tabBtn.addClass("TabActive");
+            };
+            TabConfig.prototype.ShowActiveTab = function (tabBtn) {
+                ///<summary>
+                /// 显示激活的选项卡
+                ///</summary>
+                var C = this;
+                if(S.isType(tabBtn, "Undefined")){
+                    tabBtn = C.GetActiveTab();
+                }else{
+                    C.SetActiveTab(tabBtn);
+                }
+                if(tabBtn == null){ return null; }
+                C.MoveToTabButton(tabBtn);
+
+                // 获取对应激活的面板
+                var panel = C.GetPanelObject(tabBtn);
+                if(panel !== null){
+                    // 隐藏所有的面板
+                    $(".TabPanelsArea", C.TabView).eq(0).children(".TabPanel").hide();
+                    // 显示面板
+                    panel.show("slow", function(){
+                        
+                    });
+                }
+                return tabBtn;
             };
             TabConfig.prototype.GetTabLocation = function(tabBtn){
                 ///<summary>
@@ -758,10 +798,12 @@
                             // 执行用户设置的点击事件,并检测其返回值
                             if(S.Exec(tab.onClick, [api, event], btn) !== false){
                                 // 返回值不为 false 则继续执行默认的点击操作
-                                // 设置该选项卡按钮为激活状态
-                                C.SetActiveTab(btn);
-                                // 移动以显示该按钮
-                                C.MoveToTabButton(btn);
+//                                // 设置该选项卡按钮为激活状态
+//                                C.SetActiveTab(btn);
+//                                // 移动以显示该按钮
+//                                C.MoveToTabButton(btn);
+                                // 将指定选项卡按钮设置为激活按钮并显示
+                                C.ShowActiveTab(btn);
                                 // 执行选项卡默认点击后事件
                                 S.Exec(C.option.onTabClicked, [api, event], btn); } }
                     }else{
