@@ -109,8 +109,10 @@
                 closeMsg: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
-                // onClick: function(api, event){}
+                // onClick: function(api, content, panel, event){}
                 // api: 插件的api引用
+                // content: 选项卡对应的面板对象的'内容'对象
+                // panel: 选项卡对应的面板对象
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
                 // 关闭选项卡事件
@@ -162,12 +164,16 @@
                 ScrollLeft: "双击移动到最左端",
                 ScrollRight: "双击移动到最右端"
             },
+            /// 使用面板功能
+            usePanel: true,
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
             /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
-            /// onTabClick: function(api, event){}
+            /// onTabClick: function(api, content, panel, event){}
             /// api: 插件的api引用
+            /// content: 选项卡对应的面板对象的'内容'对象
+            /// panel: 选项卡对应的面板对象
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
             /// 所有选项卡按钮的默认'点击后'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略

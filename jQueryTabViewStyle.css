@@ -85,6 +85,14 @@
 	height: 300px;
 	background-color: Gray;
 }
+/* 选项卡面板包装区域 */
+.TabMainArea .TabPanelsWrap
+{
+	position: relative;
+	overflow: auto;
+	width: 100%;
+	height: 100%;
+}
 /* 选项卡面板 */
 .TabMainArea .TabPanel
 {
@@ -99,7 +107,13 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	overflow: hidden;
+	overflow: auto;
+}
+/* 面板的内容 */
+.TabMainArea .TabPanel > .TabPanelPackage > .TabContent
+{
+	width: 100%;
+	/*height: 100%;*/
 }
 
 /************************* 外观表现部分 **************************/
