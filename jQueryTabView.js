@@ -46,6 +46,38 @@
                 image: null,
                 // 选项卡的图标(值为图片的url)
                 icon: null,
+                // 选项卡的主体内容, 可以为以下值:
+                //  1. 字符串: 页面上的某个HTML元素的id或class选择器, 如"#Tab1"或".Tabs"
+                //  2. 字符串: HTML字符串, 如"<div><p>Text.<p></div>"
+                //  3. 字符串: 网页的URL, 如"http://www.google.com" 
+                //              (如果是internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
+                //  4. 对象: HTML DOM对象
+                //  5. 对象: jQuery对象
+                content: null,
+                // 选项卡的ajax设置, 如果设置了此值, 那么将忽略对于content属性的设置, 
+                //  可以为以下值:
+                // 1. 字符串: 一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"), 
+                //              ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
+                // 2. 对象: 对象完整结构如下:
+                //  {
+                //      //一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"); 必选项
+                //      url: "",
+                //      // ajax请求类型; 可选项
+                //      type: "POST",
+                //      // ajax返回数据的类型, 如果没有设置success事件,此属性的设置将被忽略; 可选项
+                //      dataType: "text",
+                //      // 需要传递给后台的数据; 可选项
+                //      data: {},
+                //      // ajax成功后触发的事件; 可选项
+                //      // 如果没有设置此事件,那么ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
+                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery的ajax中的说明(下同)
+                //      success: function(data, textStatus, xhr){},
+                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
+                //      complete: function(xhr, textStatus){},
+                //      // ajax失败后触发的事件; 可选项
+                //      error: function(xhr, textStatus, errorThrown){}
+                //  }
+                ajax: null,
                 // 选项卡的宽度(单位为px(像素))
                 width: null,
                 // 是否是激活的选项卡
@@ -171,8 +203,8 @@
             /// <summary>
             /// 去除字符串str头尾的指定字符串,如果没有给定指定要去除的字符串,则默认去除空格
             /// </summary>
-            if (str == null){ return "";}
-            if( typeof chars == "undefined"){ chars = ' '; }
+            if (!S.isType(str, "String")){ return "";}
+            if( !S.isType(chars, "String")){ chars = ' '; }
             // 去除前面所有的空格
             var cl = chars.length;
             while ( (str.length >= cl) && (str.substring(0, cl) == chars) ) {
@@ -229,6 +261,49 @@
                 //(type === "Number" && $.isNumeric(obj)) ||
                 (type === "Number" && !isNaN( parseFloat(obj) ) && isFinite( obj )) ||
                  Object.prototype.toString.call(obj).slice(8,-1) === type;
+        },
+        isURL: function(url){
+            ///<summary>
+            /// 判断对象是否是URL
+            ///</summary>
+
+            // // 匹配 普通命名
+            // var n1 = /[^\*\?<>\|\:" \/\\]+/
+            // // 标准命名(横线或下划线左右必须为字母)
+            // var n2= /(\w[-_]+\w|\w)+/;
+
+            // //域名单引号部分
+            // var p1 = /\.\w+/;
+            // // 用标准命名替换
+            // p1 = /\.(\w[-_]+\w|\w)+/;
+            // // 域名端口部分
+            // var p2 = /(\:\d+)?/;
+            // // 域名结尾部分
+            // var p3 = /(\/(?!\/))?/;
+
+            // // 路径部分
+            // var u1 = /([^\*\?<>\|\:" \/\\]+(\/(?!\/))?)*/;
+
+
+            // // url开头 1 (如: '../test')
+            // var head1 = /\.\.\/(?!\/)/;
+            // // url开头 2 (如: 'http://test')
+            // var head2 = /\w+\:\/\/\w+/;
+            // // 后部替换为标准命名
+            // head2 = /\w+\:\/\/(\w[-_]+\w|\w)+/;
+            // // url开头 3 (如: 'test')
+            // var head3 = /\w+/;
+            // // 使用普通命名替换
+            // head3 = /[^\*\?<>\|\:" \/\\]+/;
+            // // url开头 4 (如: '/test')
+            // var head4 = /\/(?!\/)/;
+
+            // // URL'完整万维网域名'部分(例如以'http://'开头的,以':80'或':80/'结尾的URL)
+            // var H1 = /^((\w+\:\/\/(?=\w))?(\w[-_]+\w|\w)+(\.(\w[-_]+\w|\w)+)*(\:\d+)?(\/(?!\/))?)/;
+
+            var urlPattern = /^(?:(?:(?:\w+\:\/\/(?=\w))?(?:\w[-_]+\w|\w)+(?:\.(?:\w[-_]+\w|\w)+)*(?:\:\d+)?(?:\/(?!\/))?)|\.\.\/(?!\/))(?:[^\*\?<>\|\:"\/\\]+(?:\/(?!\/)))*/;            
+            
+            return S.isType(url, "String") && urlPattern.test(S.Trim(url));
         },
         GetBorderWidth: function (ele, fail, isVertical) {
             ///<summary>
@@ -782,7 +857,89 @@
                         panel.show();
                         panel.css("z-index", 0);
                         panel.animate({opacity: "+=1"}, "slow", function(){
-                            
+                            var pack = panel.children(".TabPanelPackage");
+                            // 设置内部包装容器的宽和高
+                            pack.width(panel.width() - 10);
+                            pack.height(panel.height() - 10);
+                            pack.css("top", "5px");
+                            // ajax功能代码 ...
+                            // 获取用户的ajax设置
+                            var ajax = S.GetTabOption(tabBtn).ajax;
+
+                            if(ajax != null){
+                                // 初始化 ajax 对象
+                                var _ajax = {
+                                        type: "POST",
+                                        dataType: "text",
+                                        data: {}
+                                    };
+                                // 设置ajax参数
+                                if(S.isURL(ajax)){
+                                    _ajax.url = ajax;
+                                }else if(S.isType(ajax, "Object")){
+                                    if(S.isURL(ajax.url)){
+                                        _ajax.url = ajax.url;
+                                        // 只有设置了success事件后才能改变ajax返回数据的类型
+                                        if($.isFunction(ajax.success) 
+                                            && S.isType(ajax.dataType, "String") && (S.Trim(ajax.dataType) !== "")){
+                                            _ajax.dataType = ajax.dataType;
+                                        }
+                                        // 设置请求类型
+                                        if(S.isType(ajax.type, "String") && (S.Trim(ajax.dataType) !== "")){
+                                            _ajax.type = ajax.type;
+                                        }
+                                        // 设置数据
+                                        if(!S.isType(ajax.data, "Undefined")){
+                                            _ajax.data = ajax.data;
+                                        }
+                                    }else{ _ajax = null; }
+                                }else{ _ajax = null; }
+
+                                if(_ajax != null){
+                                    // 获取面板的内容对象
+                                    var content = pack.children(".TabContent").eq(0);
+                                    if(content.length <= 0){
+                                        content = $("<div class='TabContent TabLoading' />");
+                                        pack.html("");
+                                        pack.append(content);
+                                    }else{
+                                        content.addClass("TabLoading");
+                                        content.html("");
+                                    }
+                                    //content.css("background-image", "url('image/loading.gif')");
+                                    // var loading = $("<div class='TabLoading'></div>");
+                                    // content.append(loading);
+
+                                    // 进行ajax操作
+                                    $.ajax({
+                                      url: _ajax.url,
+                                      type: _ajax.type,
+                                      dataType: _ajax.dataType,
+                                      data: _ajax.data,
+                                      complete: function(xhr, textStatus) {
+                                        // 执行用户设置的complete事件
+                                        S.Exec(ajax.complete, [xhr, textStatus], content);
+                                      },
+                                      success: function(data, textStatus, xhr) {
+                                        // 移除载入中class
+                                        content.removeClass("TabLoading");
+                                        if($.isFunction(ajax.success)){
+                                            // 执行用户设置的success事件
+                                            S.Exec(ajax.success, [data, textStatus, xhr], content);
+                                        }else{
+                                            content.html(data);
+                                        }
+                                      },
+                                      error: function(xhr, textStatus, errorThrown) {
+                                        // 移除载入中class
+                                        content.removeClass("TabLoading");
+                                        content.append("载入失败");
+                                        // 执行用户设置的error事件
+                                        S.Exec(ajax.error, [xhr, textStatus, errorThrown], content);
+                                      }
+                                    });
+                                }
+                            }
                         });
                     }
                 }
@@ -824,7 +981,7 @@
                 // 绑定事件
                 btn.click(function (event) {
                     // 如果使用者点击的是 关闭按钮
-                    if ($(event.target).hasClass("TabCloseButton")){ return false;}
+                    //if ($(event.target).hasClass("TabCloseButton")){ return false;}
                     // 获取API对象
                     var api = S.GetAPI($(this).parents(".TabMainArea").eq(0));
                     // 获取对应的面板对象
@@ -876,6 +1033,8 @@
                                 C.RemoveTabButton(btn);
                                 // 执行选项卡默认关闭后事件
                                 S.Exec(C.option.onTabClosed, [api, content, panel, event], btn); } }
+                        // 阻止事件传递到祖先元素
+                        event.stopPropagation();
                     });
                 }
 
@@ -980,6 +1139,7 @@
 
                 var pack = $("<div class='TabPanelPackage'/>");
                 panel.append(pack);
+
                 // 隐藏
                 panel.hide();
                 panel.css("z-index", -1);
@@ -1131,9 +1291,42 @@
                         C.PanelArray.push(panel);
                         // 构造内容对象
                         var content = $("<div class='TabContent'/>");
-                        panel.children(".TabPanelPackage").append(content);
-                        
-                        content.append(">>> " + tabBtn.data(S.Tag.TabUID));
+
+                        var tcont = tab.content;
+                        // 捕获可能出现的跨域问题所产生的错误
+                        try{
+                            // 优先使用ajax
+                             if(!S.isType(tab.ajax, "String") && (tab.ajax == null)){
+                                if(S.isType(tcont, "String") || S.isType(tcont, "Object")){
+                                    var cont = $(tcont);
+                                    // 如果是选择器字符串,jQuery对象,HTML DOM对象
+                                    if(cont.length > 0){
+                                        content.append(cont);
+                                    // 如果是一个URL字符串
+                                    // }else if(S.isType(tcont, "String") && (S.Trim(tcont) != "")){
+                                    }else if(S.isURL(tcont)){
+                                        // 调整url
+                                        // if((tcont.toLowerCase().indexOf("http://") < 0)
+                                        //     && (tcont.indexOf("../") != 0)){
+                                        //     tcont = "http://" + tcont;
+                                        // }
+                                        // 使用内联框架
+                                        content = $("<iframe class='TabContent' height='100%' width='100%' scrolling='yes' src='" + tcont 
+                                            + "'>无法访问该地址: '" + tcont + "'</iframe>");
+                                        // 如果载入错误,则尝试调整url
+                                        content.error(function(){
+                                            this.src = "http://" + tcont;
+                                        })
+                                    }
+                                }
+                            }
+                            panel.children(".TabPanelPackage").append(content);
+
+                            // content.append(">>> " + tabBtn.data(S.Tag.TabUID));
+                        }catch(err){
+                            content.remove();
+                            panel.children(".TabPanelPackage").append("<div class='TabContent'>无法访问该地址: '" + tcont + "'</div>");
+                        }
                     }
                 }
 

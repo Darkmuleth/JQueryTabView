@@ -83,7 +83,6 @@
 	overflow: hidden;
 	width: 100%;
 	height: 300px;
-	background-color: Gray;
 }
 /* 选项卡面板包装区域 */
 .TabMainArea .TabPanelsWrap
@@ -99,14 +98,16 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	background-color: Lime;
+	text-align: center;
+	vertical-align: middle;
+	/*background-color: Lime;*/
 }
 /* 选项卡面板的内部包装容器 */
 .TabMainArea .TabPanel > .TabPanelPackage
 {
+	margin: auto;
 	position: relative;
-	width: 100%;
-	height: 100%;
+	top: 5px;
 	overflow: auto;
 }
 /* 面板的内容 */
@@ -114,8 +115,16 @@
 {
 	width: 100%;
 	/*height: 100%;*/
+	text-align: center;
+	vertical-align: middle;
 }
-
+/* 面板内容加载中 */
+.TabMainArea .TabLoading
+{
+	width: 100%;
+	height: 100%;
+	/*position: relative;*/
+}
 /************************* 外观表现部分 **************************/
 /* 选项卡主区域 */
 .TabMainArea
@@ -312,6 +321,23 @@
 /* 选项卡面板区域 */
 .TabMainArea .TabPanelsArea
 {
-	width: 100%;
-	border-top: 1px solid #e5ffff;
+	border: 1px solid #adf;
+	border-top-color: #e5ffff;
+	background-color: #f5fdfd;
+	/*background-color: Gray;*/
+}
+/* 选项卡面板的内部包装容器 */
+.TabMainArea .TabPanel > .TabPanelPackage
+{
+	border: 1px solid #e5f5ff;
+	background-color: #fff;
+}
+/* 面板内容加载中 */
+.TabMainArea .TabLoading
+{
+	/*margin: auto;*/
+	background-image: url("image/loading.gif");
+	/*background-position: top center;*/
+	background-position: center center;
+	background-repeat: no-repeat;
 }

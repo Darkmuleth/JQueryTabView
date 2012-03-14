@@ -3,6 +3,14 @@
 
 一个简单的基于jQuery的选项卡插件。
 
+主要实现以下功能：
+
+* 选项卡添加或移除；
+* 选项卡按钮滚动；
+* 选项卡按钮展开或收起；
+* 选项卡内容连接到其它网页；
+* ajax方式载入选项卡内容
+
 项目：[JQueryTabView](https://github.com/Darkmuleth/JQueryTabView)
 
 ## 作者
@@ -97,6 +105,38 @@
                 image: null,
                 // 选项卡的图标(值为图片的url)
                 icon: null,
+                // 选项卡的主体内容, 可以为以下值:
+                //  1. 字符串: 页面上的某个HTML元素的id或class选择器, 如"#Tab1"或".Tabs"
+                //  2. 字符串: HTML字符串, 如"<div><p>Text.<p></div>"
+                //  3. 字符串: 网页的URL, 如"http://www.google.com" 
+                //              (如果是internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
+                //  4. 对象: HTML DOM对象
+                //  5. 对象: jQuery对象
+                content: null,
+                // 选项卡的ajax设置, 如果设置了此值, 那么将忽略对于content属性的设置, 
+                //  可以为以下值:
+                // 1. 字符串: 一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"), 
+                //              ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
+                // 2. 对象: 对象完整结构如下:
+                //  {
+                //      //一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"); 必选项
+                //      url: "",
+                //      // ajax请求类型; 可选项
+                //      type: "POST",
+                //      // ajax返回数据的类型, 如果没有设置success事件,此属性的设置将被忽略; 可选项
+                //      dataType: "text",
+                //      // 需要传递给后台的数据; 可选项
+                //      data: {},
+                //      // ajax成功后触发的事件; 可选项
+                //      // 如果没有设置此事件,那么ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
+                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery的ajax中的说明(下同)
+                //      success: function(data, textStatus, xhr){},
+                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
+                //      complete: function(xhr, textStatus){},
+                //      // ajax失败后触发的事件; 可选项
+                //      error: function(xhr, textStatus, errorThrown){}
+                //  }
+                ajax: null,
                 // 选项卡的宽度(单位为px(像素))
                 width: null,
                 // 是否是激活的选项卡
