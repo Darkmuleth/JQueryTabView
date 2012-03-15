@@ -28,11 +28,11 @@
     };
     var CC = Console;
 
-    /// 公用命名
+    /// 公用命名空间
     var Static = {
         /// 插件默认设置
         defaultOption: {
-            /// 选项卡按钮对象(多个按钮用数组表示)
+            /// 选项卡配置对象(若是多个选项卡可使用数组表示)
             tabs: {
                 // 选项卡的CSS编号值(符合CSS命名规则的字符串)
                 cssId: null,
@@ -50,7 +50,7 @@
                 //  1. 字符串: 页面上的某个HTML元素的id或class选择器, 如"#Tab1"或".Tabs"
                 //  2. 字符串: HTML字符串, 如"<div><p>Text.<p></div>"
                 //  3. 字符串: 网页的URL, 如"http://www.google.com" 
-                //              (如果是internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
+                //              (如果是Internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
                 //  4. 对象: HTML DOM对象
                 //  5. 对象: jQuery对象
                 content: null,
@@ -59,7 +59,7 @@
                 // 1. 字符串: 一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"), 
                 //              ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
                 // 2. 对象: 对象完整结构如下:
-                //  {
+                //  ajax: {
                 //      //一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"); 必选项
                 //      url: "",
                 //      // ajax请求类型; 可选项
@@ -70,13 +70,13 @@
                 //      data: {},
                 //      // ajax成功后触发的事件; 可选项
                 //      // 如果没有设置此事件,那么ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
-                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery的ajax中的说明(下同)
+                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery中对jQuery.ajax()方法的说明(下同)
                 //      success: function(data, textStatus, xhr){},
-                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
-                //      complete: function(xhr, textStatus){},
                 //      // ajax失败后触发的事件; 可选项
-                //      error: function(xhr, textStatus, errorThrown){}
-                //  }
+                //      error: function(xhr, textStatus, errorThrown){},
+                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
+                //      complete: function(xhr, textStatus){}
+                //  },
                 ajax: null,
                 // 选项卡的宽度(单位为px(像素))
                 width: null,
@@ -87,7 +87,9 @@
                 // 可以删除(将添加删除按钮), 布尔值,如果为null则按照tabClosable来配置
                 closable: null,
                 // 鼠标悬停在关闭按钮上时显示的提示文字
-                closeMsg: null,
+                closeMessage: null,
+                // 面板的内边距(像素)
+                padding: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
@@ -112,7 +114,7 @@
             /// 自动为选项卡添加CSS编号
             autoTabId: false,
             /// 选项卡的CSS编号值前缀(符合CSS命名规则的字符串), 只有在 autoTabId 为 true 时有效
-            tabIdText: "JQueryTab_",
+            tabIdText: "JQueryTab",
             /// 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开
             tabCssClass: null,
             /// 选项卡的高度(单位为px(像素))
@@ -123,10 +125,12 @@
             tabMinHeight: 14,
             /// 选项卡的最小宽度(像素)
             tabMinWidth: 50,
-            /// 选项卡默认可以删除
+            /// 选项卡的默认删除设置
             tabClosable: true,
             /// 选项卡之间的横向距离(像素)
             spacing: 2,
+            /// 面板的默认内边距(像素)
+            padding: 5,
             /// 可以滚动以显示过多的选项卡按钮
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
@@ -143,7 +147,9 @@
                 Add: "添加新选项卡",
                 AddText: "请输入新选项卡的名字",
                 ScrollLeft: "双击移动到最左端",
-                ScrollRight: "双击移动到最右端"
+                ScrollRight: "双击移动到最右端",
+                LoadingFail: "载入失败",
+                ConnectFail: "无法访问该地址"
             },
             /// 使用面板功能
             usePanel: true,
@@ -183,10 +189,14 @@
         },
         /// 用于计算选项卡插件的UID
         TabViewCount: 0,
-        /// 选项卡的标记名(主要用于 $.data())
+        /// 选项卡的标记名命名空间(主要用于 $.data())
         Tag: {
             /// 选项卡插件的uid标记名
             ViewUID: "JQueryTabViewUID",
+            /// 选项卡API标记名
+            TabAPI: "TabViewAPI",
+            /// 选项卡Config标记名
+            TabConfig: "TabViewConfig",
             /// 选项卡插件的滚动按钮启用/禁用标记名
             ScollEnabled: "TabScollEnabled",
             /// 选项卡按钮的UID标记名
@@ -196,7 +206,13 @@
             /// 选项卡按钮的设置对象标记名
             TabOption: "TabButtonOption",
             /// 特殊按钮标记名
-            TabSpec: "TabSpecialBtn"
+            TabSpec: "TabSpecialBtn",
+            /// 选项卡按钮连续移动标记名
+            TabsMove: "IsTabGoTo",
+            /// 选项卡定时器标记名
+            TabTimeOut: "TabsMoveTimeOut",
+            /// 内联框架的url标记名
+            IframeURL: "TabIframeURL"
         },
         //////////////// 公用函数 /////////////////
         Trim: function(str, chars){
@@ -264,46 +280,30 @@
         },
         isURL: function(url){
             ///<summary>
-            /// 判断对象是否是URL
+            /// 判断对象是否是URL字符串
             ///</summary>
-
-            // // 匹配 普通命名
-            // var n1 = /[^\*\?<>\|\:" \/\\]+/
-            // // 标准命名(横线或下划线左右必须为字母)
-            // var n2= /(\w[-_]+\w|\w)+/;
-
-            // //域名单引号部分
-            // var p1 = /\.\w+/;
-            // // 用标准命名替换
-            // p1 = /\.(\w[-_]+\w|\w)+/;
-            // // 域名端口部分
-            // var p2 = /(\:\d+)?/;
-            // // 域名结尾部分
-            // var p3 = /(\/(?!\/))?/;
-
-            // // 路径部分
-            // var u1 = /([^\*\?<>\|\:" \/\\]+(\/(?!\/))?)*/;
-
-
-            // // url开头 1 (如: '../test')
-            // var head1 = /\.\.\/(?!\/)/;
-            // // url开头 2 (如: 'http://test')
-            // var head2 = /\w+\:\/\/\w+/;
-            // // 后部替换为标准命名
-            // head2 = /\w+\:\/\/(\w[-_]+\w|\w)+/;
-            // // url开头 3 (如: 'test')
-            // var head3 = /\w+/;
-            // // 使用普通命名替换
-            // head3 = /[^\*\?<>\|\:" \/\\]+/;
-            // // url开头 4 (如: '/test')
-            // var head4 = /\/(?!\/)/;
-
-            // // URL'完整万维网域名'部分(例如以'http://'开头的,以':80'或':80/'结尾的URL)
-            // var H1 = /^((\w+\:\/\/(?=\w))?(\w[-_]+\w|\w)+(\.(\w[-_]+\w|\w)+)*(\:\d+)?(\/(?!\/))?)/;
-
             var urlPattern = /^(?:(?:(?:\w+\:\/\/(?=\w))?(?:\w[-_]+\w|\w)+(?:\.(?:\w[-_]+\w|\w)+)*(?:\:\d+)?(?:\/(?!\/))?)|\.\.\/(?!\/))(?:[^\*\?<>\|\:"\/\\]+(?:\/(?!\/)))*/;            
             
             return S.isType(url, "String") && urlPattern.test(S.Trim(url));
+        },
+        Process: function(obj, type, filter){
+            ///<summary>
+            /// 处理指定对象, 返回处理后的结果
+            ///</summary>
+            // 如果是字符串
+            if(S.isType(obj, "String")){
+                obj = S.Trim(obj).replace(/#|\./g, "");
+                // 如果不是要处理class值
+                if(type !== "CssClass"){
+                    obj = obj.replace(/\s*/g, "");
+                }
+                // 执行自定的操作
+                var str = S.Exec(filter, [obj]);
+                if(S.isType(str, "String")){
+                    obj = str;
+                }
+            }
+            return obj;
         },
         GetBorderWidth: function (ele, fail, isVertical) {
             ///<summary>
@@ -471,25 +471,25 @@
             ///<summary>
             /// 为指定jQuery对象的HTML DOM添加指定的config对象
             ///</summary>
-            obj.data("TabViewConfig", cfg);
+            obj.data(S.Tag.TabConfig, cfg);
         },
         GetConfig: function(obj){
             ///<summary>
             /// 获取选项卡插件的config对象
             ///</summary>
-            return obj.data("TabViewConfig");
+            return obj.data(S.Tag.TabConfig);
         },
         SetAPI: function(obj, api){
             ///<summary>
             /// 为指定jQuery对象的HTML DOM添加指定的API对象
             ///</summary>
-            obj.data("TabViewAPI", api);
+            obj.data(S.Tag.TabAPI, api);
         },
         GetAPI: function(obj){
             ///<summary>
             /// 获取选项卡插件的API对象
             ///</summary>
-            return S.Copy(obj.data("TabViewAPI"));
+            return S.Copy(obj.data(S.Tag.TabAPI));
         },
         SetTabOption: function(tabBtn, tabOp){
             ///<summary>
@@ -834,21 +834,15 @@
                     C.SetActiveTab(tabBtn);
                 }
                 if(tabBtn == null){ return null; }
-                // 显示按钮
+                // 移动以显示按钮
                 C.MoveToTabButton(tabBtn);
 
                 // 获取对应激活的面板
                 var panel = C.GetPanelObject(tabBtn);
                 if(panel != null){
                     var panels = $(".TabPanelsArea", C.TabView).eq(0).children(".TabPanel");
-                    if(panel.is(":visible")){
-                        // // 隐藏所有的面板
-                        // panels.hide();
-                        // panels.css("z-index", -1);
-                        // // 显示面板
-                        // panel.show();
-                        // panel.css("z-index", 0);
-                    }else{
+                    // 如果面板不是显示出来的
+                    if(panel.is(":hidden")){
                         // 隐藏所有的面板
                         panels.hide();
                         panels.css("z-index", -1);
@@ -856,22 +850,39 @@
                         panel.css("opacity", 0);
                         panel.show();
                         panel.css("z-index", 0);
+                        var pack = panel.children(".TabPanelPackage");
+                        // 获取选项卡的设置对象
+                        var tab = S.GetTabOption(tabBtn);
+                        // 获取默认内边距
+                        var p = !S.isType(C.option.padding, "Number") ? 0 : C.option.padding;
+                        // 获取选项卡单独设置的内边距(如果有)
+                        p = !S.isType(tab.padding, "Number") ? p : tab.padding;
+                        // 取绝对值
+                        p = Math.abs(p);
+                        var dbP = p * 2;
+                        // 设置内部包装容器的宽和高, 即面板的内边距
+                        pack.width(panel.width() - dbP);
+                        pack.height(panel.height() - dbP);
+                        pack.css("top", p + "px");
+                        // 动画效果显示面板
                         panel.animate({opacity: "+=1"}, "slow", function(){
-                            var pack = panel.children(".TabPanelPackage");
-                            // 设置内部包装容器的宽和高
-                            pack.width(panel.width() - 10);
-                            pack.height(panel.height() - 10);
-                            pack.css("top", "5px");
+                            // 获取面板的内容对象
+                            var content = pack.children(".TabContent").eq(0);
+                            if(content.length <= 0){
+                                content = $("<div class='TabContent' />");
+                                pack.html("");
+                                pack.append(content);
+                            }
                             // ajax功能代码 ...
                             // 获取用户的ajax设置
-                            var ajax = S.GetTabOption(tabBtn).ajax;
+                            var ajax = tab.ajax;
 
                             if(ajax != null){
                                 // 初始化 ajax 对象
                                 var _ajax = {
-                                        type: "POST",
-                                        dataType: "text",
-                                        data: {}
+                                        _type: "POST",
+                                        _dataType: "text",
+                                        _data: {}
                                     };
                                 // 设置ajax参数
                                 if(S.isURL(ajax)){
@@ -882,40 +893,30 @@
                                         // 只有设置了success事件后才能改变ajax返回数据的类型
                                         if($.isFunction(ajax.success) 
                                             && S.isType(ajax.dataType, "String") && (S.Trim(ajax.dataType) !== "")){
-                                            _ajax.dataType = ajax.dataType;
+                                            _ajax._dataType = ajax.dataType;
                                         }
                                         // 设置请求类型
                                         if(S.isType(ajax.type, "String") && (S.Trim(ajax.dataType) !== "")){
-                                            _ajax.type = ajax.type;
+                                            _ajax._type = ajax.type;
                                         }
                                         // 设置数据
                                         if(!S.isType(ajax.data, "Undefined")){
-                                            _ajax.data = ajax.data;
+                                            _ajax._data = ajax.data;
                                         }
                                     }else{ _ajax = null; }
                                 }else{ _ajax = null; }
-
+                                // 如果可以进行ajax
                                 if(_ajax != null){
-                                    // 获取面板的内容对象
-                                    var content = pack.children(".TabContent").eq(0);
-                                    if(content.length <= 0){
-                                        content = $("<div class='TabContent TabLoading' />");
-                                        pack.html("");
-                                        pack.append(content);
-                                    }else{
-                                        content.addClass("TabLoading");
-                                        content.html("");
-                                    }
-                                    //content.css("background-image", "url('image/loading.gif')");
-                                    // var loading = $("<div class='TabLoading'></div>");
-                                    // content.append(loading);
-
+                                    // 添加loading class
+                                    content.addClass("TabLoading");
+                                    // 清空内容
+                                    content.html("");
                                     // 进行ajax操作
                                     $.ajax({
                                       url: _ajax.url,
-                                      type: _ajax.type,
-                                      dataType: _ajax.dataType,
-                                      data: _ajax.data,
+                                      type: _ajax._type,
+                                      dataType: _ajax._dataType,
+                                      data: _ajax._data,
                                       complete: function(xhr, textStatus) {
                                         // 执行用户设置的complete事件
                                         S.Exec(ajax.complete, [xhr, textStatus], content);
@@ -933,11 +934,18 @@
                                       error: function(xhr, textStatus, errorThrown) {
                                         // 移除载入中class
                                         content.removeClass("TabLoading");
-                                        content.append("载入失败");
+                                        // 添加载入失败信息
+                                        content.append(C.option.tabMessage.LoadingFail);
                                         // 执行用户设置的error事件
                                         S.Exec(ajax.error, [xhr, textStatus, errorThrown], content);
                                       }
                                     });
+                                }
+                            }else{
+                                var url = content.data(S.Tag.IframeURL);
+                                // 如果是url,则说明content是iframe元素,设置其src
+                                if(S.isURL(url)){
+                                    content.attr("src", url);
                                 }
                             }
                         });
@@ -1011,7 +1019,7 @@
                 if((tab.closable === true) 
                     || ((typeof tab.closable != "boolean") && (C.option.tabClosable === true))){
                     var msg = C.option.tabMessage.Close;
-                    if(tab.closeMsg != null){ msg = tab.closeMsg;}
+                    if(tab.closeMessage != null){ msg = tab.closeMessage;}
                     //var closeBtn = $("<div class='TabCloseButton' title='" + msg + "'>×</div>");
                     var closeBtn = $("<div class='TabCloseButton' title='" + msg + "'/>");
                     btn.append(closeBtn);
@@ -1066,16 +1074,16 @@
                 if(S.isType(tab.type, "Undefined")){
                     // 添加id
                     if(S.isType(tab.cssId, "String")){
-                        btn.attr("id", tab.cssId.replace("#").replace("."));
+                        btn.attr("id", S.Process(tab.cssId));
                     }else if((C.option.autoTabId === true) && S.isType(C.option.tabIdText, "String")){
-                        btn.attr("id", C.option.tabIdText.replace("#").replace(".") + C.TabArray.length);
+                        btn.attr("id", S.Process(C.option.tabIdText) + "_" + C.TabArray.length);
                     }
                     // 添加class
                     if(S.isType(tab.cssClass, "String")){
-                        btn.addClass(tab.cssClass.replace("#").replace("."));
+                        btn.addClass(S.Process(tab.cssClass, "CssClass"));
                     }
                     if(S.isType(C.option.tabCssClass, "String")){
-                        btn.addClass(C.option.tabCssClass.replace("#").replace("."));
+                        btn.addClass(S.Process(C.option.tabCssClass, "CssClass"));
                     }
                     // 添加选项卡UID
                     btn.data(S.Tag.TabUID, C.option.name + "_Tab_" + (C.TabCount++));
@@ -1125,6 +1133,8 @@
                 ///<summary>
                 /// 创建一个面板元素,并不实际放入页面
                 ///</summary>
+                var C = this;
+
                 if(S.isType(tab, "Undefined")){
                     tab = S.GetTabOption(tabBtn);
                 }
@@ -1133,6 +1143,25 @@
                 if(tab == null || !S.isType(tab.type, "Undefined")){ return null;}
 
                 var panel = $("<div class='TabPanel'/>");
+
+                var suf = "_P";
+                // 添加id
+                if(S.isType(tab.cssId, "String")){
+                    panel.attr("id", S.Process(tab.cssId) + suf);
+                }else if((C.option.autoTabId === true) && S.isType(C.option.tabIdText, "String")){
+                    panel.attr("id", S.Process(tabBtn.attr("id")) + suf);
+                }
+                // 添加class
+                function _Filter(str){
+                    // 为所有的class名添加后缀
+                    return S.Trim(str.replace(/\s+/g, suf + " ")) + suf;
+                };
+                if(S.isType(tab.cssClass, "String")){
+                    panel.addClass(S.Process(tab.cssClass, "CssClass", _Filter));
+                }
+                if(S.isType(C.option.tabCssClass, "String")){
+                    panel.addClass(S.Process(C.option.tabCssClass, "CssClass", _Filter));
+                }
 
                 // 设置面板的UID
                 panel.data(S.Tag.TabUID, tabBtn.data(S.Tag.TabUID));
@@ -1299,24 +1328,21 @@
                              if(!S.isType(tab.ajax, "String") && (tab.ajax == null)){
                                 if(S.isType(tcont, "String") || S.isType(tcont, "Object")){
                                     var cont = $(tcont);
-                                    // 如果是选择器字符串,jQuery对象,HTML DOM对象
+                                    // 如果是选择器字符串,jQuery对象 或 HTML DOM对象
                                     if(cont.length > 0){
                                         content.append(cont);
                                     // 如果是一个URL字符串
-                                    // }else if(S.isType(tcont, "String") && (S.Trim(tcont) != "")){
                                     }else if(S.isURL(tcont)){
-                                        // 调整url
-                                        // if((tcont.toLowerCase().indexOf("http://") < 0)
-                                        //     && (tcont.indexOf("../") != 0)){
-                                        //     tcont = "http://" + tcont;
-                                        // }
                                         // 使用内联框架
-                                        content = $("<iframe class='TabContent' height='100%' width='100%' scrolling='yes' src='" + tcont 
-                                            + "'>无法访问该地址: '" + tcont + "'</iframe>");
+                                        content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
+                                            + tcont + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</iframe>");
                                         // 如果载入错误,则尝试调整url
                                         content.error(function(){
                                             this.src = "http://" + tcont;
                                         })
+                                        // 保存url
+                                        content.data(S.Tag.IframeURL, tcont);
+                                        // content.attr("src", tcont);
                                     }
                                 }
                             }
@@ -1325,7 +1351,8 @@
                             // content.append(">>> " + tabBtn.data(S.Tag.TabUID));
                         }catch(err){
                             content.remove();
-                            panel.children(".TabPanelPackage").append("<div class='TabContent'>无法访问该地址: '" + tcont + "'</div>");
+                            panel.children(".TabPanelPackage").append("<div class='TabContent'>" 
+                                + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</div>");
                         }
                     }
                 }
@@ -1930,8 +1957,7 @@
                 // 面板显示区域
                 var panelArea = $("<div class='TabPanelsArea'/>");
                 // 面板包装区域(计划用于'移动显示激活面板'--动画)
-                var panelWrap = $("<div class='TabPanelsWrap'/>");
-                panelWrap.hide();
+                var panelWrap = $("<div class='TabPanelsWrap'/>").hide();
 
                 view.append(leftTool);
                 view.append(leftBtn);
@@ -1996,6 +2022,12 @@
                     tempArray[i][0].css("margin", "0 3px");
                 }
 
+                // // 在主工具区添加一个遮罩层
+                // var mask = $("<div class='JQueryTabViewMask'/>");
+                // toolsArea.append(mask);
+
+                // 在主工具区添加一个选项卡进级配置面板
+
                 CC("插件HTML内部结构构造完毕", view);
                 /// =================================
                 // 设置默认激活的选项卡
@@ -2035,7 +2067,7 @@
                 leftBtn.click(function (event) {
                     // 如果当前可以移动,且不是'连续移动'
                     if ( ($(this).data(S.Tag.ScollEnabled) === "true") 
-                            && ($(this).data("IsTabGoTo") !== "true") ) {
+                            && ($(this).data(S.Tag.TabsMove) !== "true") ) {
                         C.MoveToLeft(op.onScrolledLeft);
                     }
                 });
@@ -2044,19 +2076,19 @@
                 leftBtn.dblclick(function(){
                     // 如果当前可以移动,且不是'连续移动'
                     if ( ($(this).data(S.Tag.ScollEnabled) === "true") 
-                            && ($(this).data("IsTabGoTo") !== "true") ) {
+                            && ($(this).data(S.Tag.TabsMove) !== "true") ) {
                         if(C.TabArray.length > 0){ C.MoveToTabButton(C.TabArray[0]); } }
                 });
                 function DoMove(obj, position){
                     ///<summary>
                     /// 开始连续移动
                     ///</summary>
-                    obj.data("IsTabGoTo", "false");
+                    obj.data(S.Tag.TabsMove, "false");
                     if (obj.data(S.Tag.ScollEnabled) === "true") {
                         // 设置定时器
-                        obj.data("TabsMoveTimeOut",setTimeout(function(){
+                        obj.data(S.Tag.TabTimeOut, setTimeout(function(){
                             // 设置'连续移动'标记
-                            obj.data("IsTabGoTo", "true");
+                            obj.data(S.Tag.TabsMove, "true");
                             // 以指定速度(每毫秒0.25像素)移动到最左边
                             //C.MoveToPosition(position, 0.25, true);
                             C.MoveToPosition(position, op.moveSpeed, true);
@@ -2069,12 +2101,12 @@
                     /// 停止连续移动
                     ///</summary>
                     // 获取定时器
-                    var timeOut = obj.data("TabsMoveTimeOut");
+                    var timeOut = obj.data(S.Tag.TabTimeOut);
                     if((typeof timeOut != "undefined") && (timeOut != null)){
                         // 清除定时器
                         clearTimeout(timeOut);
-                        obj.data("TabsMoveTimeOut", null);
-                        if(obj.data("IsTabGoTo") === "true"){
+                        obj.data(S.Tag.TabTimeOut, null);
+                        if(obj.data(S.Tag.TabsMove) === "true"){
                             var t = setTimeout(function(){
                                 // 停止连续移动
                                 btnArea.stop();
@@ -2094,7 +2126,7 @@
                 rightBtn.click(function () {
                     // 如果当前可以移动,且不是'连续移动'
                     if ( ($(this).data(S.Tag.ScollEnabled) === "true") 
-                            && ($(this).data("IsTabGoTo") !== "true") ) {
+                            && ($(this).data(S.Tag.TabsMove) !== "true") ) {
                         C.MoveToRight(op.onScrolledRight);
                     }
                 });
@@ -2103,7 +2135,7 @@
                 rightBtn.dblclick(function(){
                     // 如果当前可以移动,且不是'连续移动'
                     if ( ($(this).data(S.Tag.ScollEnabled) === "true") 
-                            && ($(this).data("IsTabGoTo") !== "true") ) {
+                            && ($(this).data(S.Tag.TabsMove) !== "true") ) {
                         var l = C.TabArray.length;
                         if(l > 0){C.MoveToTabButton(C.TabArray[l - 1]);}
                     }

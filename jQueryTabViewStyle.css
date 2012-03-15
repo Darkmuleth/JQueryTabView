@@ -1,4 +1,4 @@
-﻿
+
 
 /************************* 定位布局部分 **************************/
 /* 选项卡主区域 */
@@ -107,7 +107,6 @@
 {
 	margin: auto;
 	position: relative;
-	top: 5px;
 	overflow: auto;
 }
 /* 面板的内容 */
@@ -125,6 +124,16 @@
 	height: 100%;
 	/*position: relative;*/
 }
+/* 遮罩层 */
+.JQueryTabViewMask
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
 /************************* 外观表现部分 **************************/
 /* 选项卡主区域 */
 .TabMainArea
@@ -340,4 +349,12 @@
 	/*background-position: top center;*/
 	background-position: center center;
 	background-repeat: no-repeat;
+}
+/* 遮罩层 */
+.JQueryTabViewMask
+{
+	background-color: #fff;
+	opacity: 0.4;
+	-moz-opacity: 0.4;
+	filter:alpha(opacity=4);
 }

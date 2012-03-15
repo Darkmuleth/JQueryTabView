@@ -56,7 +56,7 @@
 
 **使用自定义配置**
 
-示例(初始时拥有两个选项卡)：
+示例(初始时生成两个选项卡)：
 
 ``` html
 	<script type="text/javascript">
@@ -65,6 +65,7 @@
 			tabs: [{
 					caption: "Button 1",
 					active: true,
+                    content: "<p>Content 1</p>",
 					onClick: function () { alert("Button 1 Click!"); },
 					onClose: function () { alert("Button 1 Close!"); }
 				},
@@ -72,6 +73,7 @@
 					image: "../TabImage.jpg",
 					cssId: "Button2",
 					caption: "Button 2",
+                    content: "<p>Content 2</p>",
 					closable: false,
 					width: 150,
 					onClick: function () { alert("Button 2 Click !"); }
@@ -91,7 +93,7 @@
 
 ``` javascript
         {
-            /// 选项卡按钮对象(多个按钮用数组表示)
+            /// 选项卡配置对象(若是多个选项卡可使用数组表示)
             tabs: {
                 // 选项卡的CSS编号值(符合CSS命名规则的字符串)
                 cssId: null,
@@ -109,7 +111,7 @@
                 //  1. 字符串: 页面上的某个HTML元素的id或class选择器, 如"#Tab1"或".Tabs"
                 //  2. 字符串: HTML字符串, 如"<div><p>Text.<p></div>"
                 //  3. 字符串: 网页的URL, 如"http://www.google.com" 
-                //              (如果是internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
+                //              (如果是Internet上的网页,为了避免一些错误情况,建议在URL前加上传输协议,如"http://")
                 //  4. 对象: HTML DOM对象
                 //  5. 对象: jQuery对象
                 content: null,
@@ -118,7 +120,7 @@
                 // 1. 字符串: 一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"), 
                 //              ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
                 // 2. 对象: 对象完整结构如下:
-                //  {
+                //  ajax: {
                 //      //一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"); 必选项
                 //      url: "",
                 //      // ajax请求类型; 可选项
@@ -129,13 +131,13 @@
                 //      data: {},
                 //      // ajax成功后触发的事件; 可选项
                 //      // 如果没有设置此事件,那么ajax操作成功后将自动把后台传回来的数据转成HTML元素,置入选项卡面板的内容对象中去
-                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery的ajax中的说明(下同)
+                //      //  函数的上下文(this对象)为选项卡面板的内容对象, 函数的参数可以参照jQuery中对jQuery.ajax()方法的说明(下同)
                 //      success: function(data, textStatus, xhr){},
-                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
-                //      complete: function(xhr, textStatus){},
                 //      // ajax失败后触发的事件; 可选项
-                //      error: function(xhr, textStatus, errorThrown){}
-                //  }
+                //      error: function(xhr, textStatus, errorThrown){},
+                //      // ajax完成后触发的事件(不管是成功还是失败,都将触发); 可选项
+                //      complete: function(xhr, textStatus){}
+                //  },
                 ajax: null,
                 // 选项卡的宽度(单位为px(像素))
                 width: null,
@@ -146,7 +148,9 @@
                 // 可以删除(将添加删除按钮), 布尔值,如果为null则按照tabClosable来配置
                 closable: null,
                 // 鼠标悬停在关闭按钮上时显示的提示文字
-                closeMsg: null,
+                closeMessage: null,
+                // 面板的内边距(像素)
+                padding: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
@@ -171,7 +175,7 @@
             /// 自动为选项卡添加CSS编号
             autoTabId: false,
             /// 选项卡的CSS编号值前缀(符合CSS命名规则的字符串), 只有在 autoTabId 为 true 时有效
-            tabIdText: "JQueryTab_",
+            tabIdText: "JQueryTab",
             /// 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开
             tabCssClass: null,
             /// 选项卡的高度(单位为px(像素))
@@ -182,10 +186,12 @@
             tabMinHeight: 14,
             /// 选项卡的最小宽度(像素)
             tabMinWidth: 50,
-            /// 选项卡默认可以删除
+            /// 选项卡的默认删除设置
             tabClosable: true,
             /// 选项卡之间的横向距离(像素)
             spacing: 2,
+            /// 面板的默认内边距(像素)
+            padding: 5,
             /// 可以滚动以显示过多的选项卡按钮
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
@@ -202,7 +208,9 @@
                 Add: "添加新选项卡",
                 AddText: "请输入新选项卡的名字",
                 ScrollLeft: "双击移动到最左端",
-                ScrollRight: "双击移动到最右端"
+                ScrollRight: "双击移动到最右端",
+                LoadingFail: "载入失败",
+                ConnectFail: "无法访问该地址"
             },
             /// 使用面板功能
             usePanel: true,
