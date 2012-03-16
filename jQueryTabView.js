@@ -82,6 +82,8 @@
                 width: null,
                 // 是否是激活的选项卡
                 active: false,
+                // 指示该选项卡按钮是否可以点击, 设置为false时同时将不能点击该选项卡的删除按钮
+                enable: true,
                 // 标识选项卡按钮的顺序(若相同,则按照该数组中的顺序)
                 index: 9999,
                 // 可以删除(将添加删除按钮), 布尔值,如果为null则按照tabClosable来配置
@@ -94,8 +96,8 @@
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
                 // api: 插件的api引用
-                // content: 选项卡对应的面板对象的'内容'对象
-                // panel: 选项卡对应的面板对象
+                // content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
+                // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
                 // 关闭选项卡事件
@@ -153,14 +155,16 @@
             },
             /// 使用面板功能
             usePanel: true,
+            /// 不创建选项卡工具, 如果此值设为true,那么scrollable将默认设置为true
+            noTools: false,
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
             /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
             /// onTabClick: function(api, content, panel, event){}
             /// api: 插件的api引用
-            /// content: 选项卡对应的面板对象的'内容'对象
-            /// panel: 选项卡对应的面板对象
+            /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
+            /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
             /// 所有选项卡按钮的默认'点击后'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
@@ -635,6 +639,8 @@
                 return str;
             }
         };
+        /// 选项卡进级设置面板
+        this.AdvancePanel = null;
         /// 用于计算选项卡按钮的UID
         this.TabCount = 0;
         
@@ -830,10 +836,15 @@
                 var C = this;
                 if(S.isType(tabBtn, "Undefined")){
                     tabBtn = C.GetActiveTab();
+                }
+                // 获取选项卡的设置对象
+                var tab = S.GetTabOption(tabBtn);
+
+                if((tabBtn == null) || (tab.enable === false)){
+                    return null;
                 }else{
                     C.SetActiveTab(tabBtn);
                 }
-                if(tabBtn == null){ return null; }
                 // 移动以显示按钮
                 C.MoveToTabButton(tabBtn);
 
@@ -851,8 +862,6 @@
                         panel.show();
                         panel.css("z-index", 0);
                         var pack = panel.children(".TabPanelPackage");
-                        // 获取选项卡的设置对象
-                        var tab = S.GetTabOption(tabBtn);
                         // 获取默认内边距
                         var p = !S.isType(C.option.padding, "Number") ? 0 : C.option.padding;
                         // 获取选项卡单独设置的内边距(如果有)
@@ -986,34 +995,43 @@
                 // 设置内部元素
                 C.SetTabElement(btn, tab);
 
+                var disable = 0.4;
+
                 // 绑定事件
                 btn.click(function (event) {
                     // 如果使用者点击的是 关闭按钮
                     //if ($(event.target).hasClass("TabCloseButton")){ return false;}
-                    // 获取API对象
-                    var api = S.GetAPI($(this).parents(".TabMainArea").eq(0));
-                    // 获取对应的面板对象
-                    var panel = C.GetPanelObject(btn);
-                    // 面板的内部容器
-                    var content = null;
-                    if(panel != null){
-                        content = $(".TabContent", panel);
-                    }
-                    // 如果不是特殊按钮(即,是普通的选项卡按钮)
-                    if( btn.data(S.Tag.TabSpec) !== S.Tag.TabSpec){
-                        // 执行选项卡默认点击事件,并检测其返回值
-                        if(S.Exec(C.option.onTabClick, [api, content, panel, event], btn) !== false){
-                            // 执行用户设置的点击事件,并检测其返回值
-                            if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
-                                // 返回值不为 false 则继续执行默认的点击操作
-
-                                // 将指定选项卡按钮设置为激活按钮并显示
-                                C.ShowActiveTab(btn);
-                                // 执行选项卡默认点击后事件
-                                S.Exec(C.option.onTabClicked, [api, content, panel, event], btn); } }
+                    btn.children(".TabButtonPackage").css("opacity", 1);
+                    btn.children(".TabCloseButton").css("opacity", 1);
+                    if(S.GetTabOption(btn).enable === false){
+                        btn.children(".TabButtonPackage").css("opacity", disable);
+                        btn.children(".TabCloseButton").css("opacity", disable);
                     }else{
-                        // 执行按钮的点击事件
-                        S.Exec(tab.onClick, [C, api, event], btn); }
+                        // 获取API对象
+                        var api = S.GetAPI($(this).parents(".TabMainArea").eq(0));
+                        // 获取对应的面板对象
+                        var panel = C.GetPanelObject(btn);
+                        // 面板的内部容器
+                        var content = null;
+                        if(panel != null){
+                            content = $(".TabContent", panel);
+                        }
+                        // 如果不是特殊按钮(即,是普通的选项卡按钮)
+                        if( btn.data(S.Tag.TabSpec) !== S.Tag.TabSpec){
+                            // 执行选项卡默认点击事件,并检测其返回值
+                            if(S.Exec(C.option.onTabClick, [api, content, panel, event], btn) !== false){
+                                // 执行用户设置的点击事件,并检测其返回值
+                                if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
+                                    // 返回值不为 false 则继续执行默认的点击操作
+
+                                    // 将指定选项卡按钮设置为激活按钮并显示
+                                    C.ShowActiveTab(btn);
+                                    // 执行选项卡默认点击后事件
+                                    S.Exec(C.option.onTabClicked, [api, content, panel, event], btn); } }
+                        }else{
+                            // 执行按钮的点击事件
+                            S.Exec(tab.onClick, [C, api, event], btn); }
+                    }
                 });
                 // 添加关闭按钮
                 if((tab.closable === true) 
@@ -1024,28 +1042,40 @@
                     var closeBtn = $("<div class='TabCloseButton' title='" + msg + "'/>");
                     btn.append(closeBtn);
                     closeBtn.click(function (event) {
-                        var api = S.GetAPI($(this).parents(".TabMainArea").eq(0));
-                        // 获取对应的面板对象
-                        var panel = C.GetPanelObject(btn);
-                        // 面板的内部容器
-                        var content = null;
-                        if(panel != null){
-                            content = $(".TabContent", panel);
+                        btn.children(".TabButtonPackage").css("opacity", 1);
+                        closeBtn.css("opacity", 1);
+                        // 如果选项卡被禁用了
+                        if(S.GetTabOption(btn).enable === false){
+                            btn.children(".TabButtonPackage").css("opacity", disable);
+                            closeBtn.css("opacity", disable);
+                        }else{
+                            var api = S.GetAPI($(this).parents(".TabMainArea").eq(0));
+                            // 获取对应的面板对象
+                            var panel = C.GetPanelObject(btn);
+                            // 面板的内部容器
+                            var content = null;
+                            if(panel != null){
+                                content = $(".TabContent", panel);
+                            }
+                            // 执行选项卡默认关闭事件,并检测其返回值
+                            if(S.Exec(C.option.onTabClose, [api, content, panel, event], btn) !== false){
+                                // 执行用户设置的关闭事件,并检测其返回值
+                                if(S.Exec(tab.onClose, [api, content, panel, event], btn) !== false){
+                                    // 返回值不为 false 则继续执行默认的关闭操作
+                                    //// 关闭该选项卡按钮 ...
+                                    C.RemoveTabButton(btn);
+                                    // 执行选项卡默认关闭后事件
+                                    S.Exec(C.option.onTabClosed, [api, content, panel, event], btn); } }
                         }
-                        // 执行选项卡默认关闭事件,并检测其返回值
-                        if(S.Exec(C.option.onTabClose, [api, content, panel, event], btn) !== false){
-                            // 执行用户设置的关闭事件,并检测其返回值
-                            if(S.Exec(tab.onClose, [api, content, panel, event], btn) !== false){
-                                // 返回值不为 false 则继续执行默认的关闭操作
-                                //// 关闭该选项卡按钮 ...
-                                C.RemoveTabButton(btn);
-                                // 执行选项卡默认关闭后事件
-                                S.Exec(C.option.onTabClosed, [api, content, panel, event], btn); } }
                         // 阻止事件传递到祖先元素
                         event.stopPropagation();
                     });
                 }
 
+                if(tab.enable === false){
+                    btn.children(".TabButtonPackage").css("opacity", disable);
+                    btn.children(".TabCloseButton").css("opacity", disable);
+                }
                 return btn;
             };
             TabConfig.prototype.SetTabElement = function (btn, tab) {
@@ -1087,9 +1117,9 @@
                     }
                     // 添加选项卡UID
                     btn.data(S.Tag.TabUID, C.option.name + "_Tab_" + (C.TabCount++));
-                    // 保存设置对象
-                    S.SetTabOption(btn, tab);
                 }
+                // 保存设置对象
+                S.SetTabOption(btn, tab);
 
                 // 添加选项卡图标
                 if (tab.icon != null) {
@@ -1466,7 +1496,8 @@
                 ///</summary>
                 var C = this;
                 var view = C.TabView;
-                if($(".TabButtonArea", view).eq(0).children("." + C.addButtonOption.type).length > 0){
+                if(($(".TabButtonArea", view).eq(0).children("." + C.addButtonOption.type).length > 0)
+                    || C.option.noTools === true){
                     return; }
                 // 添加一个内部'添加按钮'
                 var btn = C.AddTabButton(S.ExtendTabs(C.addButtonOption), false);
@@ -1537,6 +1568,8 @@
                 var view = C.TabView;
                 var enb = true;
                 var obj = $(".TabScrollBtn", view);
+                // 缩减为匹配到的前两个
+                obj = obj.slice(0, 2);
                 if (isHide == true) {
                     if(!obj.is(":hidden")){
                         CC("隐藏滚动按钮", view);
@@ -1683,7 +1716,18 @@
                 ///<summary>
                 /// 获取选项卡显示区域的宽度
                 ///</summary>
-                return $(".TabShowArea", this.TabView).eq(0).get(0).clientWidth;
+                var V = this.TabView.get(0);
+                var showArea = $(".TabShowArea", V).eq(0);
+                // var leftTool = $(".TabLeftTools", V).eq(0).get(0);
+                // var rightTool = $(".TabRightTools", V).eq(0).get(0);
+                // var leftBtn = $(".TabLeftBtn", V).eq(0).get(0);
+                // var rightBtn = $(".TabRightBtn", V).eq(0).get(0);
+                // 刷新显示区域的宽度
+                showArea.width(V.offsetWidth 
+                    - $(".TabLeftTools", V).eq(0).get(0).offsetWidth - $(".TabRightTools", V).eq(0).get(0).offsetWidth
+                    - $(".TabLeftBtn", V).eq(0).get(0).offsetWidth - $(".TabRightBtn", V).eq(0).get(0).offsetWidth);
+
+                return showArea.get(0).clientWidth;
             };
             TabConfig.prototype.GetTabsWidth = function ( flag ) {
                 ///<summary>
@@ -1924,6 +1968,20 @@
                     CC("滚动结束, 实际步进量: " + offset + ", 当前偏移位置: " + C.GetNowOffset(), C.TabView);
                 });
             };
+            TabConfig.prototype.ShowActive = function(){
+                ///<summary>
+                /// 显示选项卡进级设置面板
+                ///</summary>
+                var advance = this.AdvancePanel;
+                advance instanceof $ ? advance.show() : 0;
+            };
+            TabConfig.prototype.CloseActive = function(){
+                ///<summary>
+                /// 关闭选项卡进级设置面板
+                ///</summary>
+                var advance = this.AdvancePanel;
+                advance instanceof $ ? advance.hide() : 0;
+            };
             TabConfig.prototype.Init = function(){
                 ///<summary>
                 /// 初始化配置, 运行插件
@@ -1969,8 +2027,8 @@
                 showArea.append(btnArea);
                 panelArea.append(panelWrap);
 
-                // 设置显示区域的宽度 (比主区域短)
-                showArea.css("width", "" + (view.get(0).clientWidth - 120) + "px");
+                // // 设置显示区域的宽度 (比主区域短)
+                // showArea.width(view.get(0).clientWidth - 120);
                 // 设置面板区域显隐
                 if(C.option.usePanel !== true){
                     panelArea.hide();
@@ -1982,52 +2040,102 @@
                     C.AddNewTabButtons(op.tabs); }
                 //CC("选项卡按钮添加完成", view);
             
-                CC("添加工具按钮", view);
-                // 在左工具区添加'展开/收起'按钮
-                function ExpanFun(btn, noExpan){
-                    if(noExpan == true){
-                        btn.attr("title", op.tabMessage.Expansion);
-                        btn.children(".TabButtonPackage").text("∨");
-                    }else{
-                        btn.attr("title", op.tabMessage.Shrink);
-                        btn.children(".TabButtonPackage").text("∧");
-                    }
-                };
-                var expanOp = {
-                    caption: op.tabMessage.Expansion,
-                    width: 19,
-                    closable: false,
-                    type: "TabExpanBtn",
-                    onClick: function(){
-                        ExpanFun(this, S.TriggerScroll(view) == true);
-                        return false;
-                    }
-                };
-                expanOp = S.ExtendTabs(expanOp);
-                var expanBtn = C.CreateTabElement(expanOp, "div");
-                ExpanFun(expanBtn, op.scrollable);
-                leftTool.append(expanBtn);
+                if(op.noTools !== true){
+                    CC("添加工具按钮", view);
+                    // 在左工具区添加'展开/收起'按钮
+                    function ExpanFun(btn, noExpan){
+                        if(noExpan == true){
+                            btn.attr("title", op.tabMessage.Expansion);
+                            btn.children(".TabButtonPackage").text("∨");
+                        }else{
+                            btn.attr("title", op.tabMessage.Shrink);
+                            btn.children(".TabButtonPackage").text("∧");
+                        }
+                    };
+                    var expanOp = {
+                        caption: op.tabMessage.Expansion,
+                        width: 19,
+                        closable: false,
+                        type: "TabExpanBtn",
+                        onClick: function(){
+                            ExpanFun(this, S.TriggerScroll(view) == true);
+                            return false;
+                        }
+                    };
+                    expanOp = S.ExtendTabs(expanOp);
+                    var expanBtn = C.CreateTabElement(expanOp, "div");
+                    ExpanFun(expanBtn, op.scrollable);
+                    leftTool.append(expanBtn);
 
-                // 在右工具区域添加一个外部'添加按钮'
-                // 修改提示信息
-                C.addButtonOption.caption = op.tabMessage.Add;
-                var addOp = S.ExtendTabs(C.addButtonOption);
-                var addBtn = C.CreateTabElement(addOp, "div");
-                rightTool.append(addBtn);
-                var tempArray = [[expanBtn, expanOp.width], 
-                                [addBtn, addOp.width]];
-                for(var l=tempArray.length, i=0; i<l; i++){
-                    C.SetTabWidth(tempArray[i][0], tempArray[i][1], true);
-                    C.SetElementHeight(tempArray[i][0]);
-                    tempArray[i][0].css("margin", "0 3px");
+                    // 在右工具区域添加一个外部'添加按钮'
+                    // 修改提示信息
+                    C.addButtonOption.caption = op.tabMessage.Add;
+                    var addOp = S.ExtendTabs(C.addButtonOption);
+                    var addBtn = C.CreateTabElement(addOp, "div");
+                    rightTool.append(addBtn);
+                    var tempArray = [[expanBtn, expanOp.width], 
+                                    [addBtn, addOp.width]];
+                    for(var l=tempArray.length, i=0; i<l; i++){
+                        C.SetTabWidth(tempArray[i][0], tempArray[i][1], true);
+                        C.SetElementHeight(tempArray[i][0]);
+                        tempArray[i][0].css("margin", "0 3px");
+                    }
+
+                    // // 在主工具区添加一个遮罩层
+                    // var mask = $("<div class='JQueryTabViewMask'/>");
+                    // toolsArea.append(mask);
+
+                    // 获取一个选项卡进级配置面板
+                    var advance = $(".JQueryTabViewAdvance", $("body")).eq(0);
+                    if(advance.length <= 0){
+                        advance = $("<div class='JQueryTabViewAdvance TabAdvance'><h5 class='TabAdvanceTitle'>选项卡进级设置</h5><div class='TabAdvancePackage'/></div>");
+                        $("body").append(advance);
+                        var adPack = advance.children(".TabAdvancePackage");
+                        // 构造一个选项卡(在此之前advance和adPack对象必须已经存在于HTML页面之中并且是可视的!)
+                        adPack.JQueryTabView({
+                            tabs: [{
+                                caption: "常规"
+                            },{
+                                caption: "内容"
+                            },{
+                                caption: "外观"
+                            },{
+                                caption: "事件",
+                                title: "'事件'当前不可用",
+                                enable: false
+                            }],
+                            active: 0,
+                            spacing: 0,
+                            padding: 0,
+                            tabWidth: 127,
+                            tabClosable: false,
+                            // 不将noTools设置成true的话程序可能出错!
+                            noTools: true
+                        });
+                        var adBtns = advance.find(".TabButton").css("background-image", "none");
+                        adBtns.css("border", "1px solid #adf");
+                        adBtns.css("border-bottom-color", "transparent");
+                        var adOK = $("<input type='button' value='OK'/>");
+                        adOK.css("margin-right", "50px");
+                        var adCancel = $("<input type='button' value='Cancel'/>");
+                        var adTemp = $("<div style='text-align:center;margin:10px 0;'/>");
+                        adTemp.append(adOK);
+                        adTemp.append(adCancel);
+                        advance.append(adTemp);
+
+                        advance.hide();
+                        
+                        advance.css("left", "650px");
+                    }
+                    // 保存进级设置面板
+                    C.AdvancePanel = advance;
+
+                }else{
+                    // 若不生成工具,则必须默认可滚动
+                    op.scrollable = true;
+                    // 重新设置显示区域的宽度
+                    // showArea.width(view.get(0).clientWidth - 34);
                 }
-
-                // // 在主工具区添加一个遮罩层
-                // var mask = $("<div class='JQueryTabViewMask'/>");
-                // toolsArea.append(mask);
-
-                // 在主工具区添加一个选项卡进级配置面板
-
                 CC("插件HTML内部结构构造完毕", view);
                 /// =================================
                 // 设置默认激活的选项卡
@@ -2038,13 +2146,14 @@
                     C.ShowActiveTab(C.SetActiveTab(op.active));
                 }else if(typeof op.active == "string"){
                     op.active = S.Trim(op.active);
+                    var temp = null;
                     if((op.active.indexOf("#") == 0) || (op.active.indexOf(".") == 0)){
                         // 如果是CSS的id或class
-                        tempArray = btnArea.children(op.active).eq(0);
-                    }else{ tempArray = null;}
-                    if(C.GetTabIndex(tempArray) > -1){
-                        // C.SetActiveTab(tempArray);
-                        C.ShowActiveTab(tempArray);
+                        temp = btnArea.children(op.active).eq(0);
+                    }
+                    if(C.GetTabIndex(temp) > -1){
+                        // C.SetActiveTab(temp);
+                        C.ShowActiveTab(temp);
                     }
                 }else if(typeof op.active == "object"){
                     // C.SetActiveTab($(op.active));
@@ -2054,7 +2163,7 @@
                 $.fx.off = true;
                 C.UseScroll(op.scrollable);
                 $.fx.off = false;
-                if(C.CanScroll() == false){ addBtn.css("display", "none");};
+                if(C.CanScroll() == false){ $(".TabAddButton", rightTool).hide();};
 
                 // 高度设置为与选项卡组的按钮一样(不含边框)
                 var h = btnArea.children(".TabButton").eq(0).get(0).clientHeight;
@@ -2156,6 +2265,11 @@
                 scollBtn.mouseleave(function(){
                     $(this).mouseup();
                 });
+
+                // 处理在opera浏览器下的显示bug
+                if( (C.TabArray.length <= 0) && (typeof opera != "undefined")){
+                    btnArea.width($(".TabButton", btnArea).eq(0).get(0).offsetWidth + 25);
+                }
             };  /// 初始化函数结束 ====================================
 
             // 创建'类共有部分已经构造'标记,防止重复定义类方法

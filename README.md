@@ -143,6 +143,8 @@
                 width: null,
                 // 是否是激活的选项卡
                 active: false,
+                // 指示该选项卡按钮是否可以点击, 设置为false时同时将不能点击该选项卡的删除按钮
+                enable: true,
                 // 标识选项卡按钮的顺序(若相同,则按照该数组中的顺序)
                 index: 9999,
                 // 可以删除(将添加删除按钮), 布尔值,如果为null则按照tabClosable来配置
@@ -155,8 +157,8 @@
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
                 // api: 插件的api引用
-                // content: 选项卡对应的面板对象的'内容'对象
-                // panel: 选项卡对应的面板对象
+                // content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
+                // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
                 // 关闭选项卡事件
@@ -214,14 +216,16 @@
             },
             /// 使用面板功能
             usePanel: true,
+            /// 不创建选项卡工具, 如果此值设为true,那么scrollable将默认设置为true
+            noTools: false,
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
             /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
             /// onTabClick: function(api, content, panel, event){}
             /// api: 插件的api引用
-            /// content: 选项卡对应的面板对象的'内容'对象
-            /// panel: 选项卡对应的面板对象
+            /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
+            /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
             /// 所有选项卡按钮的默认'点击后'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
