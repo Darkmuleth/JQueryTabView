@@ -1968,14 +1968,14 @@
                     CC("滚动结束, 实际步进量: " + offset + ", 当前偏移位置: " + C.GetNowOffset(), C.TabView);
                 });
             };
-            TabConfig.prototype.ShowActive = function(){
+            TabConfig.prototype.ShowAdvance = function(){
                 ///<summary>
                 /// 显示选项卡进级设置面板
                 ///</summary>
                 var advance = this.AdvancePanel;
                 advance instanceof $ ? advance.show() : 0;
             };
-            TabConfig.prototype.CloseActive = function(){
+            TabConfig.prototype.CloseAdvance = function(){
                 ///<summary>
                 /// 关闭选项卡进级设置面板
                 ///</summary>
