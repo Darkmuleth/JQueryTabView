@@ -34,9 +34,9 @@
         defaultOption: {
             /// 选项卡配置对象(若是多个选项卡可使用数组表示)
             tabs: {
-                // 选项卡的CSS编号值(符合CSS命名规则的字符串)
+                // 选项卡的CSS编号值(符合CSS命名规则的字符串), 其对应面板将会在此基础上添加一个'_P'后缀
                 cssId: null,
-                // 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开
+                // 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开, 其对应面板将会在此基础上添加一个'_P'后缀
                 cssClass: null,
                 // 选项卡文本
                 caption: "Tab Button",
@@ -147,7 +147,7 @@
                 Expansion: "展开",
                 Shrink: "收起",
                 Add: "添加新选项卡",
-                AddText: "请输入新选项卡的名字",
+                AddText: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
                 ScrollLeft: "双击移动到最左端",
                 ScrollRight: "双击移动到最右端",
                 LoadingFail: "载入失败",
@@ -167,10 +167,10 @@
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
-            /// 所有选项卡按钮的默认'点击后'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
+            /// 所有选项卡按钮的默认'点击后'事件
             /// (函数形式与'点击'事件相同, 下同)
             onTabClicked: null,
-            /// 所有选项卡按钮的默认'关闭'事件
+            /// 所有选项卡按钮的默认'关闭'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
             /// 所有选项卡按钮的默认'关闭后'事件
             onTabClosed: null,
@@ -308,6 +308,21 @@
                 }
             }
             return obj;
+        },
+        MoveToWindowCenter: function(ele){
+            ///<summary>
+            /// 将指定元素移动到窗口正中央
+            ///</summary>
+            ele = $(ele);
+            var win = $(window);
+            var left = (win.width() / 2) - (ele.outerWidth() / 2) + win.scrollLeft();
+            var top = (win.height() / 2) - (ele.outerHeight() / 2) + win.scrollTop();
+            if(ele.css("position") === "static"){
+                ele.css("position", "relative");
+            }
+            ele.css("left", left);
+            ele.css("top", top);
+            // ele.offset({left: left, top: top});
         },
         GetBorderWidth: function (ele, fail, isVertical) {
             ///<summary>
@@ -527,6 +542,18 @@
             enb.right = fun(C.GetRightScollEnabled());
             return enb;
         },
+        ShowTab: function(view, tabBtn){
+            ///<summary>
+            /// 显示并激活指定选项卡
+            ///</summary>
+            var C = S.GetConfig(view);
+            if(S.isType(tabBtn, "String")){ tabBtn = +tabBtn;}
+            if(S.isType(tabBtn, "Number")){
+                tabBtn = C.GetTabObject(tabBtn);
+                if( tabBtn == null ){ return;}
+            }else if(!(tabBtn instanceof $)){ tabBtn = $(tabBtn);}
+            C.ShowActiveTab(tabBtn);
+        },
         UseScroll: function(view, use){
             ///<summary>
             /// 启用或禁用滚动功能, 如果不显示设置是否启用, 将默认启用滚动
@@ -585,7 +612,7 @@
             ///</summary>
             var C = S.GetConfig(view);
             if(typeof tabBtn == "string"){ tabBtn = +tabBtn;}
-            if(S.isType(tabBtn)){
+            if(S.isType(tabBtn, "Number")){
                 tabBtn = C.GetTabObject(tabBtn);
                 if( tabBtn == null ){ return;}
             }else if(!(tabBtn instanceof $)){ tabBtn = $(tabBtn);}
@@ -716,13 +743,34 @@
                             // 检查是否需要移动
                             C.MoveTabsAfterUpdate(); }
                     });
-                    // 绑定键盘事件
-                    txt.keypress(function(e){
+                    // // 绑定键盘事件
+                    // txt.keypress(function(e){
+                    //     // 如果是回车键
+                    //     if(e.which == 13){  
+                    //         // 激发失去焦点事件
+                    //         txt.blur();
+                    //         return false; }
+                    // });
+                    txt.keydown(function(e){
                         // 如果是回车键
                         if(e.which == 13){  
                             // 激发失去焦点事件
                             txt.blur();
-                            return false; }
+                            return false;
+                        // 如果是Esc键
+                        }else if(e.which == 27){
+                            // 激发双击事件
+                            txt.dblclick();
+                        }
+                    });
+                    // 绑定双击事件,打开进级面板
+                    txt.dblclick(function(event) {
+                        // 清空文本域
+                        txt.val("");
+                        // 激发失去焦点事件
+                        txt.blur();
+                        // 显示进级面板
+                        C.ShowAdvance();
                     });
                     if(C.CanScroll() == false){
                         // 将这个临时按钮放入自己前面
@@ -840,7 +888,7 @@
                 // 获取选项卡的设置对象
                 var tab = S.GetTabOption(tabBtn);
 
-                if((tabBtn == null) || (tab.enable === false)){
+                if((tabBtn == null) || (tab == null) || (tab.enable === false)){
                     return null;
                 }else{
                     C.SetActiveTab(tabBtn);
@@ -1134,6 +1182,13 @@
                     // 去除内边距
                     btn.css("padding", "0");
                     tabPack.append("<img class='TabImage' alt='" + tab.caption + "' src='" + tab.image + "' />");
+                    var _icon = $(".TabIcon", tabPack);
+                    if(_icon.length > 0){
+                        // 修改icon的定位
+                        _icon.css("position", "absolute");
+                        _icon.css("top", 3);
+                        _icon.css("left", 3);
+                    }
                 // 如果不是特殊选项卡
                 } else if(S.isType(tab.type, "Undefined")) {
                     // 添加选项卡文本
@@ -1972,15 +2027,52 @@
                 ///<summary>
                 /// 显示选项卡进级设置面板
                 ///</summary>
-                var advance = this.AdvancePanel;
-                advance instanceof $ ? advance.show() : 0;
+                var C = this;
+                var advance = C.AdvancePanel;
+                if(advance == null){ return; }
+                // 存放当前调用的配置对象
+                S.SetConfig(advance, C);
+                var mask = $(".JQueryTabViewMask").eq(0);
+                var body = $("body");
+                if(mask.length <= 0){
+                    mask = $("<div class='JQueryTabViewMask'/>");
+                    mask.click(function(){
+                        C.CloseAdvance();
+                    });
+                    body.append(mask);
+                }
+                mask.width($(document).width());
+                mask.height($(document).height());
+                mask.css("position", "absolute");
+                mask.css("top", 0);
+                mask.css("left", 0);
+                mask.css("z-index", 99998);
+                mask.css("opacity", 0);
+                mask.show();
+                // 显示遮罩层
+                mask.animate({opacity: 0.4}, "slow", function(){
+                    advance.css("z-index", 99999);
+                    // 移动至窗口中央位置
+                    S.MoveToWindowCenter(advance);
+                    // 显示进级面板
+                    advance instanceof $ ? advance.show() : 0;
+                    // 显示第一个标签
+                    S.GetAPI(advance).ShowTab(0);
+                });
             };
             TabConfig.prototype.CloseAdvance = function(){
                 ///<summary>
                 /// 关闭选项卡进级设置面板
                 ///</summary>
                 var advance = this.AdvancePanel;
+                // 移除配置对象
+                S.SetConfig(advance, void(0));
+                // 隐藏进级面板
                 advance instanceof $ ? advance.hide() : 0;
+                // 隐藏遮罩层
+                mask = $(".JQueryTabViewMask").animate({opacity: 0}, "slow", function(){
+                    mask.hide();
+                });
             };
             TabConfig.prototype.Init = function(){
                 ///<summary>
@@ -2090,15 +2182,29 @@
                     if(advance.length <= 0){
                         advance = $("<div class='JQueryTabViewAdvance TabAdvance'><h5 class='TabAdvanceTitle'>选项卡进级设置</h5><div class='TabAdvancePackage'/></div>");
                         $("body").append(advance);
+
+                        // 常规 选项卡内部内容
+                        var basic = $("<div/>");
+
+                        // 内容 选项卡内部内容
+                        var cont = $("<div/>");
+
+                        // 外观 选项卡内部内容
+                        var gui = $("<div/>");
+
+
                         var adPack = advance.children(".TabAdvancePackage");
                         // 构造一个选项卡(在此之前advance和adPack对象必须已经存在于HTML页面之中并且是可视的!)
-                        adPack.JQueryTabView({
+                        var adAPI = adPack.JQueryTabView({
                             tabs: [{
-                                caption: "常规"
+                                caption: "常规",
+                                content: basic
                             },{
-                                caption: "内容"
+                                caption: "内容",
+                                content: cont
                             },{
-                                caption: "外观"
+                                caption: "外观",
+                                content: gui
                             },{
                                 caption: "事件",
                                 title: "'事件'当前不可用",
@@ -2112,6 +2218,8 @@
                             // 不将noTools设置成true的话程序可能出错!
                             noTools: true
                         });
+                        // 保存api
+                        S.SetAPI(advance, adAPI);
                         var adBtns = advance.find(".TabButton").css("background-image", "none");
                         adBtns.css("border", "1px solid #adf");
                         adBtns.css("border-bottom-color", "transparent");
@@ -2123,8 +2231,28 @@
                         adTemp.append(adCancel);
                         advance.append(adTemp);
 
+                        // 绑定取消事件
+                        adCancel.click(function(){
+                            var C = S.GetConfig(advance);
+                            if(C == null){ return; }
+                            C.CloseAdvance();
+                        });
+                        // 绑定确定事件
+                        adOK.click(function(){
+                            var C = S.GetConfig(advance);
+                            if(C == null){ return; }
+                            var view = C.TabView;
+                            // 选项卡设置对象
+                            var tab = $.extend({}, dfop.tabs);
+                            if(S.Exec(C.option.onAddClick, [tab, S.GetAPI(view)], view) !== false){
+                                // 添加一个选项卡
+                                S.AddTabButton(view, tab);
+                                adCancel.click();
+                            }
+                        })
+
                         advance.hide();
-                        
+
                         advance.css("left", "650px");
                     }
                     // 保存进级设置面板
@@ -2372,6 +2500,10 @@
                     /// 获取配置对象
                     return S.GetConfig(view);
                 },
+                ShowTab: function(tabBtn){
+                    /// 显示并激活指定选项卡
+                    S.ShowTab(view, tabBtn);
+                },
                 UseScroll: function(use){
                     /// 启用或禁用滚动功能, 如果不显示设置是否启用, 将默认启用滚动
                     return S.UseScroll(view, use);
@@ -2417,6 +2549,12 @@
             /// 获取选项卡插件的uid
             ///</summary>
             return S.GetTabViewUID($(".TabMainArea", this).eq(0));
+        },
+        ShowTab: function(tabBtn){
+            ///<summary>
+            /// 显示并激活指定选项卡
+            ///</summary>
+            S.ShowTab($(".TabMainArea", this).eq(0), tabBtn);
         },
         UseScroll: function(use){
             ///<summary>

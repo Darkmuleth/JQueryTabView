@@ -95,9 +95,9 @@
         {
             /// 选项卡配置对象(若是多个选项卡可使用数组表示)
             tabs: {
-                // 选项卡的CSS编号值(符合CSS命名规则的字符串)
+                // 选项卡的CSS编号值(符合CSS命名规则的字符串), 其对应面板将会在此基础上添加一个'_P'后缀
                 cssId: null,
-                // 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开
+                // 选项卡的CSS类值(符合CSS命名规则的字符串), 添加多个可用空格隔开, 其对应面板将会在此基础上添加一个'_P'后缀
                 cssClass: null,
                 // 选项卡文本
                 caption: "Tab Button",
@@ -208,7 +208,7 @@
                 Expansion: "展开",
                 Shrink: "收起",
                 Add: "添加新选项卡",
-                AddText: "请输入新选项卡的名字",
+                AddText: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
                 ScrollLeft: "双击移动到最左端",
                 ScrollRight: "双击移动到最右端",
                 LoadingFail: "载入失败",
@@ -228,10 +228,10 @@
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
             onTabClick: null,
-            /// 所有选项卡按钮的默认'点击后'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
+            /// 所有选项卡按钮的默认'点击后'事件
             /// (函数形式与'点击'事件相同, 下同)
             onTabClicked: null,
-            /// 所有选项卡按钮的默认'关闭'事件
+            /// 所有选项卡按钮的默认'关闭'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
             /// 所有选项卡按钮的默认'关闭后'事件
             onTabClosed: null,
@@ -266,15 +266,17 @@
 				GetTabViewUID: function(){},
                 /// 获取配置对象
                 GetConfig: function(){},
+                /// 显示并激活指定选项卡
+                ShowTab: function(tabBtn){},
                 /// 启用或禁用滚动功能, 如果不显式设置是否启用, 将默认启用滚动
                 UseScroll: function(use){},
                 /// 启用或禁用滚动功能
                 TriggerScroll: function(){},
-				/// 添加新的选项卡按钮
-				/// tabs: 新选项卡按钮的配置, 添加多个使用数组表示
-				/// index: 新加入的选项卡按钮将插入的顺序
+				/// 添加新的选项卡
+				/// tabs: 新选项卡的配置, 添加多个使用数组表示
+				/// index: 新加入的选项卡将插入的顺序
                 AddTabButton: function (tabs, index) {},
-				/// 移除选项卡按钮, 此函数必定移除指定的选项卡, 忽略closable值
+				/// 移除选项卡, 此函数必定移除指定的选项卡, 忽略closable值
 				/// tabBtn: 需要删除的选项卡按钮的HTML DOM对象或jQuery对象
                 RemoveTabButton: function(tabBtn){}
 	};

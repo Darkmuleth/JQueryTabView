@@ -353,7 +353,7 @@
 /* 遮罩层 */
 .JQueryTabViewMask
 {
-	background-color: #fff;
+	background-color: #210;
 	opacity: 0.4;
 	-moz-opacity: 0.4;
 	filter:alpha(opacity=4);
