@@ -124,7 +124,7 @@
                 //      //一个提供ajax后台服务的URL字符串(如: "../ajax.aspx"); 必选项
                 //      url: "",
                 //      // ajax请求类型; 可选项
-                //      type: "POST",
+                //      type: "GET",
                 //      // ajax返回数据的类型, 如果没有设置success事件,此属性的设置将被忽略; 可选项
                 //      dataType: "text",
                 //      // 需要传递给后台的数据; 可选项
@@ -192,6 +192,8 @@
             tabClosable: true,
             /// 选项卡之间的横向距离(像素)
             spacing: 2,
+            /// 面板的高度(像素), 不显示表名则程序自动设置
+            panelHeight: null,
             /// 面板的默认内边距(像素)
             padding: 5,
             /// 可以滚动以显示过多的选项卡按钮
