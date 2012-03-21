@@ -2300,7 +2300,7 @@
                             }],
                             active: 1,
                             spacing: 0,
-                            padding: 0,
+                            panelPadding: 0,
                             tabWidth: 127,
                             tabHeight: 28,
                             tabClosable: false,
