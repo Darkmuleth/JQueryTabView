@@ -360,101 +360,140 @@
 	filter:alpha(opacity=40);
 }
 /* 选项卡进级配置面板 */
-    .TabAdvance
-    {
-        width: 550px;
-        position: absolute;
-        z-index: 99999;
-        padding: 5px;
-        border: 1px solid #adf;
-        background-color: #f5fdfd;
-    }
-    .TabAdvance *
-    {
-        margin: 0;
-        padding: 0;
-        font-family: "Microsoft YaHei", sans-serif ! important;
-    }
-    .TabAdvance table
-    {
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        background-color: #F5FDFD;
-        table-layout: fixed;
-        /*border-collapse: collapse;*/  /* 折叠为单一边框 */
-    }
-    .TabAdvance table tr:hover
-    {
-        background-color: #fff;
-    }
-    .TabAdvance input[type='text'], .TabAdvance textarea
-    {
-        width: 100%;
-        height: 100%;
-        border-style: none;
-        text-indent: 10px;
-        font-size: 16px;
-        background-color: transparent;
-    }
-    .TabAdvance select
-    {
-        width: 98%;
-    }
-    .TabAdvance > .TabAdvanceTitle
-    {
-        text-indent: 10px;
-        margin-bottom: 5px;
-        /*padding-bottom: 5px;
-        border-bottom: 1px solid #adf;*/
-    }
-    .TabAdvance > .TabAdvancePackage
-    {
-        width: 100%;
-    }
-    .TabAdvance .TabButton
-    {
-        background-image: none;
-    }
-    .TabAdvance .TabAdvanceLabel
-    {
-        width: 200px;
-        /*height: 35px;*/
-        border: 1px solid #46b;
-        border-top-color: #adf;
-        background-color: #59d;
-        font-weight: bold;
-        font-size: 20px;
-        color: #fff;
-        text-shadow: #35a 2px 2px 2px;
-    }
-    .TabAdvance table tr:hover .TabAdvanceLabel
-    {
-        background-color: #6bf;
-    }
-    .TabAdvance .TabAdvanceInput
-    {
-        border: 1px solid #ade;
-        border-left: 2px solid #778;
-        border-top-color: #fff;
-        border-bottom-color: #9cd;
-    }
-    .TabAdvance .TabAdvanceLabel_2
-    {
-        text-align:left;
-        width:100%;
-        height: 30px;
-        border: 1px solid #1a2;
-        border-top-color: #9ec;
-        background-color: #3b6;
-        text-shadow: #162 2px 2px 2px;
-    }
-    .TabAdvance .TabAdvanceLabel_2:hover
-    {
-        background-color: #4c9;
-        cursor: pointer;
-    }
-    .TabAdvance .TabAdvanceLabel_2 > input[type='radio']
-    {
-        margin-left: 10px;
-    }
+.TabAdvance
+{
+    width: 550px;
+    position: absolute;
+    z-index: 99999;
+    padding: 5px;
+    border: 1px solid #adf;
+    background-color: #f5fdfd;
+}
+.TabAdvance *
+{
+    margin: 0;
+    padding: 0;
+    font-family: "Microsoft YaHei", sans-serif ! important;
+}
+.TabAdvance table
+{
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color: #F5FDFD;
+    table-layout: fixed;
+    /*border-collapse: collapse;*/  /* 折叠为单一边框 */
+}
+.TabAdvance table tr:hover
+{
+    background-color: #fff;
+}
+.TabAdvance input[type='text'], .TabAdvance textarea
+{
+    width: 100%;
+    height: 100%;
+    border-style: none;
+    text-indent: 10px;
+    font-size: 16px;
+    background-color: transparent;
+}
+.TabAdvance select
+{
+    width: 98%;
+}
+.TabAdvance input[type='button']
+{
+    width: 100px;
+    height: 25px;
+    cursor: pointer;
+    border: 1px solid #46b;
+    border-top-color: #adf;
+    background-color: #59d;
+    border-bottom-width: 2px;
+    color: #fff;
+    text-shadow: #35a 2px 2px 2px;
+    font-weight: bold;
+}
+.TabAdvance input[type='button'][value='OK']:hover
+{
+    border-color: #182;
+    border-top-color: #9ec;
+    background-color: #3b6;
+    text-shadow: #162 2px 2px 2px;
+}
+.TabAdvance input[type='button'][value='Cancel']:hover
+{
+    border-color: #a22;
+    border-top-color: #ecc;
+    background-color: #d44;
+    text-shadow: #622 2px 2px 2px;
+}
+.TabAdvance > .TabAdvanceTitle
+{
+    text-indent: 10px;
+    margin-bottom: 5px;
+    /*padding-bottom: 5px;
+    border-bottom: 1px solid #adf;*/
+}
+.TabAdvance > .TabAdvancePackage
+{
+    width: 100%;
+}
+.TabAdvance .TabButton
+{
+    background-image: none;
+}
+.TabAdvance .TabAdvanceLabel
+{
+    width: 200px;
+    /*height: 35px;*/
+    border: 1px solid #46b;
+    border-top-color: #adf;
+    background-color: #59d;
+    font-weight: bold;
+    font-size: 20px;
+    color: #fff;
+    text-shadow: #35a 2px 2px 2px;
+}
+.TabAdvance table tr:hover .TabAdvanceLabel
+{
+    background-color: #6bf;
+}
+.TabAdvance .TabAdvanceInput
+{
+    border: 1px solid #ade;
+    border-left: 2px solid #778;
+    border-top-color: #fff;
+    border-bottom-color: #9cd;
+}
+.TabAdvance .TabAdvanceLabel_2
+{
+    text-align:left;
+    width:100%;
+    height: 30px;
+    border: 1px solid #182;
+    border-top-color: #9ec;
+    background-color: #3b6;
+    text-shadow: #162 2px 2px 2px;
+    cursor: pointer;
+}
+.TabAdvance .TabAdvanceLabel_2:hover
+{
+    background-color: #4c9;
+}
+.TabAdvance .TabAdvanceLabel_2 > input[type='radio']
+{
+    margin-left: 10px;
+}
+.TabAdvance .TabAdvanceLabel.TabAdvanceLabelDisable
+{
+    border: 1px solid #46b;
+    border-top-color: #adf;
+    background-color: #59d;
+    text-shadow: #35a 2px 2px 2px;
+    cursor: default;
+}
+.TabAdvance .TabAdvanceLabel.TabAdvanceLabelDisable:hover
+{
+    background-color: #59d;
+}

@@ -91,7 +91,7 @@
                 // 鼠标悬停在关闭按钮上时显示的提示文字
                 closeMessage: null,
                 // 面板的内边距(像素)
-                padding: null,
+                panelPadding: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
@@ -134,7 +134,7 @@
             /// 面板的高度(像素), 不显示表名则程序自动设置
             panelHeight: null,
             /// 面板的默认内边距(像素)
-            padding: 5,
+            panelPadding: 5,
             /// 可以滚动以显示过多的选项卡按钮
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
@@ -149,7 +149,8 @@
                 Expansion: "展开",
                 Shrink: "收起",
                 Add: "添加新选项卡",
-                AddText: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
+                AddText: "请输入新选项卡的描述",
+                AddText2: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
                 ScrollLeft: "双击移动到最左端",
                 ScrollRight: "双击移动到最右端",
                 LoadingFail: "载入失败",
@@ -157,6 +158,8 @@
             },
             /// 使用面板功能
             usePanel: true,
+            /// 不创建'选项卡进级设置面板'
+            noAdvance: false,
             /// 不创建选项卡工具, 如果此值设为true,那么scrollable将默认设置为true
             noTools: false,
             /// debug模式(开启后将向浏览器控制台打印信息)
@@ -219,6 +222,13 @@
             TabTimeOut: "TabsMoveTimeOut",
             /// 内联框架的url标记名
             IframeURL: "TabIframeURL"
+        },
+        /// 默认的ajax设置
+        defaultAjax: {
+            url: null,
+            type: "GET",
+            dataType: "text",
+            data: null
         },
         //////////////// 公用函数 /////////////////
         Trim: function(str, chars){
@@ -420,9 +430,8 @@
             /// 获取指定元素的大小(包含边框)
             ///</summary>
             var size = {};
-            //var border = S.GetBorderWidth(ele, 1);
-            size.width = ele.get(0).offsetWidth; // + border.left + border.right;
-            size.height = ele.get(0).offsetHeight; // + border.top + border.bottom;
+            size.width = ele.outerWidth();
+            size.height = ele.outerHeight();
 
             return size;
         },
@@ -633,6 +642,13 @@
                 if( tabBtn == null ){ return;}
             }else if(!(tabBtn instanceof $)){ tabBtn = $(tabBtn);}
             C.RemoveTabButton(tabBtn);
+        },
+        RefreshTabView: function(view){
+            ///<summary>
+            /// 刷新选项卡插件的显示
+            /// 在某些特殊情况下,对解决选项卡界面显示方面的不正常现象有帮助
+            ///</summary>
+            S.GetConfig(view).Refresh();
         }
     };
     S = Static;
@@ -682,6 +698,8 @@
                 return str;
             }
         };
+        /// '添加按钮'
+        this.AddButtonTemp = null;
         /// 选项卡进级设置面板
         this.AdvancePanel = null;
         /// 用于计算选项卡按钮的UID
@@ -702,92 +720,99 @@
                     ///<summary>
                     /// 创建一个用于添加新选项卡的临时选项卡按钮
                     ///</summary>
-                    //var C = S.GetConfig(this.parents(".TabMainArea").eq(0));
                     var view = C.TabView;
                     if($(".TabButtonArea", view).children(".TabTemporaryBtn").length > 0){ return;}
-                    // 临时按钮的属性设置
-                    var _op = {
-                        title: C.option.tabMessage.AddText,
-                        width: C.option.tabWidth,
-                        closable: false,
-                        type: "TabTemporaryBtn",
-                        onClick: function(){ return false;}
-                    };
-                    _op = S.ExtendTabs(_op);
-                    // 创建临时按钮
-                    var add = C.CreateTabElement(_op);
-                    C.SetTabWidth(add, _op.width);
-                    C.SetElementHeight(add);
-                    var tempEle = add.children(".TabButtonPackage");
-                    // 清空临时按钮内部
-                    tempEle.html("");
-                    // 创建文本框
-                    var txt = $("<input type='text'/>");
-                    // 将文本框放入临时按钮
-                    tempEle.append(txt);
-                    _op = C.TabArray.length - 1;
-                    if(_op >= 0){
-                        // 获取最后一个普通标签按钮
-                        tempEle = C.TabArray[_op];
-                        // 添加间距
-                        tempEle.css("margin-right", "" + C.option.spacing + "px"); 
-                    }
-                    // 绑定失去焦点事件
-                    txt.blur(function(){
-                        var temp = $(this);
-                        // 获取用户的输入文本
-                        var temp = S.Trim(temp.val());
-                        // 移除临时按钮
-                        add.remove();
-                        if(temp != ""){
-                            // 执行事件函数
-                            if(S.Exec(C.option.onAddClick, 
-                                    [S.ExtendTabs({caption: temp}), 
-                                        S.GetAPI(view)],
-                                     view) 
-                               != false){
-                                // 创建一个标签按钮
-                                S.AddTabButton(view, {caption: temp});
-                                // 标记已添加一个选项卡
-                                temp = true;
+                    var add = C.AddButtonTemp;
+                    var txt = null;
+                    if(add != null){
+                        txt = $("input[type='text']", add);
+                    }else{
+                        // 临时按钮的属性设置
+                        var _op = {
+                            title: C.option.tabMessage.AddText,
+                            width: C.option.tabWidth,
+                            closable: false,
+                            type: "TabTemporaryBtn",
+                            onClick: function(){ return false;}
+                        };
+                        if(C.option.noAdvance !== true){
+                            _op.title = C.option.tabMessage.AddText2;
+                        }
+                        _op = S.ExtendTabs(_op);
+                        // 创建临时按钮
+                        add = C.CreateTabElement(_op);
+                        C.SetTabWidth(add, _op.width);
+                        C.SetElementHeight(add);
+                        var tempEle = add.children(".TabButtonPackage");
+                        // 清空临时按钮内部
+                        tempEle.html("");
+                        // 创建文本框
+                        txt = $("<input type='text'/>");
+                        // 将文本框放入临时按钮
+                        tempEle.append(txt);
+                        // 绑定失去焦点事件
+                        txt.blur(function(){
+                            // 获取用户的输入文本
+                            var temp = S.Trim(txt.val());
+                            // 清空
+                            txt.val("");
+                            // 移除临时按钮
+                            add.detach();
+                            if(temp != ""){
+                                // 执行事件函数
+                                if(S.Exec(C.option.onAddClick, 
+                                        [S.ExtendTabs({caption: temp}), 
+                                            S.GetAPI(view)],
+                                         view) 
+                                   != false){
+                                    // 创建一个标签按钮
+                                    S.AddTabButton(view, {caption: temp});
+                                    // 标记已添加一个选项卡
+                                    temp = true;
+                                }
                             }
-                        }
-                        if((temp !== true) && (_op >= 0)){
-                            tempEle.css("margin-right", 0);
-                            // 刷新宽度
-                            C.RefreshTabsWidth();
-                            // 检查是否需要移动
-                            C.MoveTabsAfterUpdate(); }
-                    });
-                    // // 绑定键盘事件
-                    // txt.keypress(function(e){
-                    //     // 如果是回车键
-                    //     if(e.which == 13){  
-                    //         // 激发失去焦点事件
-                    //         txt.blur();
-                    //         return false; }
-                    // });
-                    txt.keydown(function(e){
-                        // 如果是回车键
-                        if(e.which == 13){  
-                            // 激发失去焦点事件
-                            txt.blur();
-                            return false;
-                        // 如果是Esc键
-                        }else if(e.which == 27){
-                            // 激发双击事件
-                            txt.dblclick();
-                        }
-                    });
-                    // 绑定双击事件,打开进级面板
-                    txt.dblclick(function(event) {
-                        // 清空文本域
-                        txt.val("");
-                        // 激发失去焦点事件
-                        txt.blur();
-                        // 显示进级面板
-                        C.ShowAdvance();
-                    });
+                            var L = C.TabArray.length - 1;
+                            if((temp !== true) && (L >= 0)){
+                                C.TabArray[L].css("margin-right", 0);
+                                // 刷新宽度
+                                C.RefreshTabsWidth();
+                                // 检查是否需要移动
+                                C.MoveTabsAfterUpdate(); }
+                        });
+                        // // 绑定键盘事件
+                        txt.keydown(function(e){
+                            // 如果是回车键
+                            if(e.which == 13){  
+                                // 激发失去焦点事件
+                                txt.blur();
+                                return false;
+                            // 如果是Esc键
+                            }else if(e.which == 27){
+                                // 激发双击事件
+                                txt.dblclick();
+                            }
+                        });
+                        // 绑定双击事件,打开进级面板
+                        txt.dblclick(function(event) {
+                            if(C.option.noAdvance !== true){
+                                // 清空文本域
+                                txt.val("");
+                                // 激发失去焦点事件
+                                txt.blur();
+                                // 显示进级面板
+                                C.ShowAdvance();
+                            }
+                        });
+                        // 保存临时按钮
+                        C.AddButtonTemp = add;
+                    }
+                    var L = C.TabArray.length - 1;
+                    if(L >= 0){
+                        // 获取最后一个普通标签按钮
+                        var tempEle = C.TabArray[L];
+                        // 添加间距
+                        tempEle.css("margin-right", "" + C.option.spacing + "px");
+                    }
                     if(C.CanScroll() == false){
                         // 将这个临时按钮放入自己前面
                         this.before(add);
@@ -927,9 +952,9 @@
                         panel.css("z-index", 0);
                         var pack = panel.children(".TabPanelPackage");
                         // 获取默认内边距
-                        var p = !S.isType(C.option.padding, "Number") ? 0 : C.option.padding;
+                        var p = !S.isType(C.option.panelPadding, "Number") ? 0 : C.option.panelPadding;
                         // 获取选项卡单独设置的内边距(如果有)
-                        p = !S.isType(tab.padding, "Number") ? p : tab.padding;
+                        p = !S.isType(tab.panelPadding, "Number") ? p : tab.panelPadding;
                         // 取绝对值
                         p = Math.abs(p);
                         var dbP = p * 2;
@@ -952,11 +977,7 @@
 
                             if(ajax != null){
                                 // 初始化 ajax 对象
-                                var _ajax = {
-                                        _type: "GET",
-                                        _dataType: "text",
-                                        _data: {}
-                                    };
+                                var _ajax = $.extend({}, S.defaultAjax);
                                 // 设置ajax参数
                                 if(S.isURL(ajax)){
                                     _ajax.url = ajax;
@@ -966,15 +987,15 @@
                                         // 只有设置了success事件后才能改变ajax返回数据的类型
                                         if($.isFunction(ajax.success) 
                                             && S.isType(ajax.dataType, "String") && (S.Trim(ajax.dataType) !== "")){
-                                            _ajax._dataType = ajax.dataType;
+                                            _ajax.dataType = ajax.dataType;
                                         }
                                         // 设置请求类型
                                         if(S.isType(ajax.type, "String") && (S.Trim(ajax.dataType) !== "")){
-                                            _ajax._type = ajax.type;
+                                            _ajax.type = ajax.type;
                                         }
                                         // 设置数据
                                         if(!S.isType(ajax.data, "Undefined")){
-                                            _ajax._data = ajax.data;
+                                            _ajax.data = ajax.data;
                                         }
                                     }else{ _ajax = null; }
                                 }else{ _ajax = null; }
@@ -987,9 +1008,9 @@
                                     // 进行ajax操作
                                     $.ajax({
                                       url: _ajax.url,
-                                      type: _ajax._type,
-                                      dataType: _ajax._dataType,
-                                      data: _ajax._data,
+                                      type: _ajax.type,
+                                      dataType: _ajax.dataType,
+                                      data: _ajax.data,
                                       complete: function(xhr, textStatus) {
                                         // 执行用户设置的complete事件
                                         S.Exec(ajax.complete, [xhr, textStatus], content);
@@ -1361,8 +1382,6 @@
                 var view = C.TabView;
                 CC("Refresh Button > 刷新选项卡组数据开始", view);
                 var btnArea = $(".TabButtonArea", view).eq(0);
-                // 先从DOM中移除
-                //btnArea.find(".TabButton").detach();
                 // 根据选项卡的排序序号进行排序
                 S.SortBubble(C.TabArray, function(a,b){
                     a = +a.data(S.Tag.TabIndex);
@@ -1486,7 +1505,6 @@
                     if(C.GetTabIndex(tabBtn) > -1){
                         tabBtn.animate({width: 0, opacity: 0}, 500, function () {
                             tabBtn.hide();
-//                            tabBtn.css("opacity", 1);
                             var isAct = false;
                             if(tabBtn.hasClass("TabActive")){
                                 isAct = true;
@@ -2044,8 +2062,10 @@
                 /// 显示选项卡进级设置面板
                 ///</summary>
                 var C = this;
+                if(C.option.noAdvance === true){ return; }
                 var advance = C.AdvancePanel;
                 if(advance == null){ return; }
+                advance.get(0).SetController(null, 1, C.option);
                 // 存放当前调用的配置对象
                 S.SetConfig(advance, C);
                 var body = $("body");
@@ -2072,6 +2092,11 @@
                     S.MoveToWindowCenter(advance);
                     // 显示进级面板
                     advance instanceof $ ? advance.show() : 0;
+                    // 如果是IE浏览器
+                    if(($.support.scriptEval !== true) || ($.support.style !== true)){
+                        // 下句可解决在IE下的显示问题
+                        S.GetAPI(advance).RefreshTabView();
+                    }
                     // 显示第一个标签
                     S.GetAPI(advance).ShowTab(0);
                 });
@@ -2080,6 +2105,7 @@
                 ///<summary>
                 /// 关闭选项卡进级设置面板
                 ///</summary>
+                if(this.option.noAdvance === true){ return; }
                 var advance = this.AdvancePanel;
                 // 移除配置对象
                 S.SetConfig(advance, void(0));
@@ -2089,6 +2115,17 @@
                 mask = $("body").children(".JQueryTabViewMask").animate({opacity: 0}, "slow", function(){
                     mask.hide();
                 });
+            };
+            TabConfig.prototype.Refresh = function(){
+                ///<summary>
+                /// 刷新选项卡插件的显示
+                ///</summary>
+                var C = this;
+                if(C.CanScroll){
+                    C.RefreshTabsWidth();
+                    C.RefreshTabsMoveObj();
+                    C.MoveTabsAfterUpdate();
+                }
             };
             TabConfig.prototype.Init = function(){
                 ///<summary>
@@ -2199,7 +2236,7 @@
 
                     // 获取/添加 一个选项卡进级配置面板
                     var advance = $(".JQueryTabViewAdvance", $("body")).eq(0);
-                    if(advance.length <= 0){
+                    if((op.noAdvance !== true) && (advance.length <= 0)){
                         advance = $("<div class='JQueryTabViewAdvance TabAdvance'><h5 class='TabAdvanceTitle'>选项卡进级设置</h5><div class='TabAdvancePackage'/></div>");
                         $("body").append(advance);
 
@@ -2249,19 +2286,15 @@
                         adPack.JQueryTabView({
                             tabs: [{
                                 caption: "常规",
-                                // cssId: prefix + "basic",
                                 content: basic
                             },{
                                 caption: "内容",
-                                // cssId: prefix + "content",
                                 content: cont
                             },{
                                 caption: "外观",
-                                // cssId: prefix + "gui",
                                 content: gui
                             },{
                                 caption: "事件",
-                                // cssId: prefix + "event",
                                 title: "'事件'当前不可用",
                                 enable: false
                             }],
@@ -2292,14 +2325,13 @@
                                 var adExt = $(".TabAdvanceExtend", cont);
                                 adExt.height(adPHeight - cont.children("div").eq(0).outerHeight() 
                                     - $(".TabAdvanceLabel_2", cont).eq(1).outerHeight());
-                                // var _data = $("#" + prefix + "data", cont);
-                                // _data.height(_data.parent("*").height());
 
                                 // 获取'内容'选项卡中的单选框
                                 var radio = $("input:radio", cont);
                                 radio.click(function(event){
                                     $(".JQueryTabViewMask", cont).show();
-                                    $(this).parent(".TabAdvanceLabel_2").next("div").children(".JQueryTabViewMask").hide();
+                                    $(".TabAdvanceLabel_2", cont).removeClass("TabAdvanceLabelDisable");
+                                    $(this).parent(".TabAdvanceLabel_2").addClass("TabAdvanceLabelDisable").next("div").children(".JQueryTabViewMask").hide();
                                     // 因为给 该元素C 的 父元素P 也绑定了click事件(事件中会调用C的click事件),
                                     // 所以如果不添加下句将导致程序出错!
                                     event.stopPropagation();
@@ -2309,6 +2341,171 @@
                                 });
                                 // 默认激活第一个单选框
                                 radio.eq(0).click();
+
+                                var pref = "#" + prefix;
+                                // 设置'常规'选项卡中的closable行的点击功能
+                                var inputClose = $(pref + "closable", basic);
+                                inputClose.click(function(event){
+                                    event.stopPropagation();
+                                });
+                                inputClose.parent(".TabAdvanceInput").css("cursor", "pointer").click(function(){
+                                    inputClose.click();
+                                });
+
+                                // 添加一个外部接口
+                                $.extend(advance.get(0), {
+                                    SetController: function(tab, amount, op){
+                                        ///<summary>
+                                        /// 根据指定的选项卡设置对象来对进级面板中的控件进行设置
+                                        ///</summary>
+                                        if(tab == null){
+                                            tab = $.extend({}, dfop.tabs);
+                                        }
+                                        if(!S.isType(amount, "Number")){
+                                            amount = 1;
+                                        }
+                                        // 进行设置修正
+                                        if(op != null){
+                                            if(tab.closable == null){
+                                                tab.closable = op.tabClosable;
+                                            }
+                                            tab.closeMessage = op.tabMessage.Close;
+                                            if(tab.width == null){
+                                                tab.width = op.tabWidth;
+                                            }
+                                            if(tab.panelPadding == null){
+                                                tab.panelPadding = op.panelPadding;
+                                            }
+                                        }
+                                        // 常规 选项卡
+                                        $(pref + "caption", basic).val(tab.caption);
+                                        $(pref + "title", basic).val(tab.title);
+                                        $(pref + "index", basic).val(tab.index);
+                                        $(pref + "closeMessage", basic).val(tab.closeMessage);
+                                        if(tab.closable === false){
+                                            inputClose.removeAttr("checked");
+                                        }else{
+                                            inputClose.attr("checked", "checked");
+                                        }
+                                        $(pref + "amount", basic).val(amount);
+                                        // 内容 选项卡
+                                        // 如果没有使用ajax
+                                        if((tab.ajax == null) 
+                                            || (!S.isURL(tab.ajax) && !S.isURL(tab.ajax.url))){
+                                            // 激活content部分
+                                            $("input:radio[value='content']", cont).click();
+                                        }else{
+                                            // 激活ajax部分
+                                            $("input:radio[value='ajax']", cont).click();
+                                        }
+                                        $(pref + "content", cont).val(tab.content);
+                                        var _ajax = $.extend({}, S.defaultAjax);
+                                        if(S.isURL(tab.ajax)){
+                                            _ajax.url = tab.ajax
+                                            _ajax = $.extend(tab.ajax, _ajax);
+                                        }else if(tab.ajax != null){
+                                            _ajax.url = tab.ajax.url;
+                                            $.extend(_ajax, tab.ajax);
+                                        }
+                                        $(pref + "url", cont).val(_ajax.url);
+                                        $(pref + "type", cont).val(_ajax.type);
+                                        $(pref + "dataType", cont).val(_ajax.dataType);
+                                        $(pref + "data", cont).val(_ajax.data);
+                                        // 外观 选项卡
+                                        $(pref + "cssId", gui).val(tab.cssId);
+                                        $(pref + "cssClass", gui).val(tab.cssClass);
+                                        $(pref + "image", gui).val(tab.image);
+                                        $(pref + "icon", gui).val(tab.icon);
+                                        $(pref + "width", gui).val(tab.width);
+                                        $(pref + "padding", gui).val(tab.panelPadding);
+                                    },
+                                    GetTabOption: function(op){
+                                        ///<summary>
+                                        /// 根据进级面板中的控件进行生成并返回一个或多个选项卡设置对象(多个将返回数组)
+                                        ///</summary>
+                                        var tab = $.extend({}, dfop.tabs);
+                                        tab.caption = S.Trim($(pref + "caption", basic).val());
+                                        tab.title = S.Trim($(pref + "title", basic).val());
+                                        tab.index = parseInt($(pref + "index", basic).val(), 10);
+                                        tab.closeMessage = S.Trim($(pref + "closeMessage", basic).val());
+                                        tab.closable = inputClose.attr("checked") === "checked";
+
+                                        tab.content = S.Trim($(pref + "content", cont).val());
+                                        // 如果使用的是ajax功能
+                                        if($("input[name='" + prefix + "Content']:checked").val() == "ajax"){
+                                            tab.ajax = {
+                                                url: S.Trim($(pref + "url", cont).val()),
+                                                type: $(pref + "type", cont).val(),
+                                                dataType: S.Trim($(pref + "dataType", cont).val()),
+                                                data: S.Trim($(pref + "data", cont).val())
+                                            };
+                                        }
+                                        tab.cssId = S.Trim($(pref + "cssId", gui).val());
+                                        tab.cssClass = S.Trim($(pref + "cssClass", gui).val());
+                                        tab.image = S.Trim($(pref + "image", gui).val());
+                                        tab.icon = S.Trim($(pref + "icon", gui).val());
+                                        tab.width = parseFloat($(pref + "width", gui).val());
+                                        tab.panelPadding = parseFloat($(pref + "padding", gui).val());
+
+                                        // 进行设置修正
+                                        if(tab.title == ""){
+                                            tab.title = null;
+                                        }
+                                        if(!S.isType(tab.index, "Number")){
+                                            tab.index = S.defaultOption.tabs.index;
+                                        }else{
+                                            tab.index = Math.abs(tab.index);
+                                        }
+                                        if((op != null) && (tab.closeMessage == "")){
+                                            tab.closeMessage = op.tabMessage.Close;
+                                        }
+                                        if(tab.ajax != null){
+                                            if(S.isURL(tab.ajax.url)){
+                                                if(tab.ajax.dataType == ""){
+                                                    tab.ajax.dataType = S.defaultAjax.dataType;
+                                                }
+                                                if(tab.ajax.data == ""){
+                                                    tab.ajax.data = S.defaultAjax.data;
+                                                }else{
+                                                    try{
+                                                        tab.ajax.data = $.parseJSON(tab.ajax.data);
+                                                    }catch(e){
+                                                        tab.ajax.data = S.defaultAjax.data;
+                                                    }
+                                                }
+                                            }else{
+                                                tab.ajax = null;
+                                            }
+                                        }
+                                        if(!S.isURL(tab.image)){
+                                            tab.image = null;
+                                        }
+                                        if(!S.isURL(tab.icon)){
+                                            tab.icon = null;
+                                        }
+                                        if(!S.isType(tab.width, "Number")){
+                                            tab.width = null;
+                                        }else{
+                                            tab.width = Math.abs(tab.width);
+                                        }
+                                        if(!S.isType(tab.panelPadding, "Number")){
+                                            tab.panelPadding = null;
+                                        }else{
+                                            tab.panelPadding = Math.abs(tab.panelPadding);
+                                        }
+                                        // 生成相应数量的设置对象
+                                        var amount = parseInt($(pref + "amount", basic).val(), 10);
+                                        if(S.isType(amount, "Number") && (amount > 1)){
+                                            var temp = [];
+                                            for(i = 0; i < amount; i++){
+                                                temp.push($.extend({}, tab));
+                                            }
+                                            tab = temp;
+                                        }
+
+                                        return tab;
+                                    }
+                                });
 
                                 var adOK = $("<input type='button' value='OK'/>");
                                 adOK.css("margin-right", "50px");
@@ -2329,7 +2526,8 @@
                                     if(C == null){ return; }
                                     var view = C.TabView;
                                     // 选项卡设置对象
-                                    var tab = $.extend({}, dfop.tabs);
+                                    // var tab = $.extend({}, dfop.tabs);
+                                    var tab = advance.get(0).GetTabOption(C.option);
                                     if(S.Exec(C.option.onAddClick, [tab, S.GetAPI(view)], view) !== false){
                                         // 添加一个选项卡
                                         S.AddTabButton(view, tab);
@@ -2341,8 +2539,6 @@
                                 advance.css("top", -advance.outerHeight());
 
                                 advance.hide();
-
-                                // advance.css("left", "650px");
                             }
                         });
                     }
@@ -2352,8 +2548,6 @@
                 }else{
                     // 若不生成工具,则必须默认可滚动
                     op.scrollable = true;
-                    // 重新设置显示区域的宽度
-                    // showArea.width(view.get(0).clientWidth - 34);
                 }
                 CC("插件HTML内部结构构造完毕", view);
                 /// =================================
@@ -2371,11 +2565,9 @@
                         temp = btnArea.children(op.active).eq(0);
                     }
                     if(C.GetTabIndex(temp) > -1){
-                        // C.SetActiveTab(temp);
                         C.ShowActiveTab(temp);
                     }
                 }else if(typeof op.active == "object"){
-                    // C.SetActiveTab($(op.active));
                     C.ShowActiveTab($(op.active));
                 }
                 // 启用或禁用滚动功能
@@ -2418,7 +2610,6 @@
                             // 设置'连续移动'标记
                             obj.data(S.Tag.TabsMove, "true");
                             // 以指定速度(每毫秒0.25像素)移动到最左边
-                            //C.MoveToPosition(position, 0.25, true);
                             C.MoveToPosition(position, op.moveSpeed, true);
                         // 用户按住鼠标400毫秒后开始连续移动
                         }, 400));
@@ -2487,11 +2678,8 @@
 
                 // 为窗口的绑定resize事件
                 $(window).resize(function(){
-                    if(C.CanScroll){
-                        C.RefreshTabsWidth();
-                        C.RefreshTabsMoveObj();
-                        C.MoveTabsAfterUpdate();
-                    }
+                    // 当窗口大小发生改变时刷新选项卡的显示
+                    C.Refresh();
                 });
 
                 // 处理在opera浏览器下的显示bug
@@ -2619,6 +2807,11 @@
                 RemoveTabButton: function(tabBtn){
                     /// 移除选项卡按钮
                     S.RemoveTabButton(view, tabBtn);
+                },
+                RefreshTabView: function(){
+                    /// 刷新选项卡插件的显示
+                    /// 在某些特殊情况下,对解决选项卡界面显示方面的不正常现象有帮助
+                    S.RefreshTabView(view);
                 }
             };
             // 扩展
@@ -2682,6 +2875,13 @@
             ///</summary>
             S.RemoveTabButton($(".TabMainArea", this).eq(0), tabBtn);
             return $(this);
+        },
+        RefreshTabView: function(){
+            ///<summary>
+            /// 刷新选项卡插件的显示
+            /// 在某些特殊情况下,对解决选项卡界面显示方面的不正常现象有帮助
+            ///</summary>
+            S.RefreshTabView($(".TabMainArea", this).eq(0));
         }
     });
 

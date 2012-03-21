@@ -152,7 +152,7 @@
                 // 鼠标悬停在关闭按钮上时显示的提示文字
                 closeMessage: null,
                 // 面板的内边距(像素)
-                padding: null,
+                panelPadding: null,
                 /////////////////// 以下是事件设置 ////////////////////
                 // 点击选项卡事件
                 // onClick: function(api, content, panel, event){}
@@ -195,7 +195,7 @@
             /// 面板的高度(像素), 不显示表名则程序自动设置
             panelHeight: null,
             /// 面板的默认内边距(像素)
-            padding: 5,
+            panelPadding: 5,
             /// 可以滚动以显示过多的选项卡按钮
             scrollable: true,
             /// 选项卡按钮组移动时的步进距离(像素),只在scrollable为true时有效
@@ -210,7 +210,8 @@
                 Expansion: "展开",
                 Shrink: "收起",
                 Add: "添加新选项卡",
-                AddText: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
+                AddText: "请输入新选项卡的描述",
+                AddText2: "双击鼠标左键或按下'Esc'键进行选项卡进级设置",
                 ScrollLeft: "双击移动到最左端",
                 ScrollRight: "双击移动到最右端",
                 LoadingFail: "载入失败",
@@ -218,6 +219,8 @@
             },
             /// 使用面板功能
             usePanel: true,
+            /// 不创建'选项卡进级设置面板'
+            noAdvance: false,
             /// 不创建选项卡工具, 如果此值设为true,那么scrollable将默认设置为true
             noTools: false,
             /// debug模式(开启后将向浏览器控制台打印信息)
@@ -280,7 +283,10 @@
                 AddTabButton: function (tabs, index) {},
 				/// 移除选项卡, 此函数必定移除指定的选项卡, 忽略closable值
 				/// tabBtn: 需要删除的选项卡按钮的HTML DOM对象或jQuery对象
-                RemoveTabButton: function(tabBtn){}
+                RemoveTabButton: function(tabBtn){},
+                /// 刷新选项卡插件的显示
+                /// 在某些特殊情况下,对解决选项卡界面显示方面的不正常现象有帮助
+                RefreshTabView: function(){}
 	};
 ```
 
