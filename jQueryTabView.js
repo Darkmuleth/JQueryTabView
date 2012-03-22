@@ -93,13 +93,18 @@
                 // 面板的内边距(像素)
                 panelPadding: null,
                 /////////////////// 以下是事件设置 ////////////////////
-                // 点击选项卡事件
+                // 点击选项卡事件, 此事件将导致选项卡激活
+                // 若返回false, 则点击事件中断, 后续的激活操作将被忽略
                 // onClick: function(api, content, panel, event){}
                 // api: 插件的api引用
                 // content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
                 // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
+                // 激活选项卡事件; 发生在onClick事件之后,onTabActived事件之前,
+                // 若返回false, 则激活事件中断, 后续的激活操作将被忽略
+                // 函数形式与点击事件相同(其中函数的event参数当且仅当onActive事件是直接由选项卡按产生时才会存在)
+                onActive: null,
                 // 关闭选项卡事件
                 // 函数形式与点击事件相同
                 onClose: null
@@ -110,9 +115,13 @@
             ///     1.整数: 位置序号(从0开始计算)
             ///     2.字符串: 选项卡按钮的CSS的id选择器,必须以'#'字符串开头
             ///     3.字符串: 选项卡按钮的CSS的class选择器,必须以'.'字符串开头, 只激活第一个找到的匹配项
-            ///     4.对象: 需要激活的选项卡的HTML DOM对象
-            ///     5.对象: 需要激活的选项卡的jQuery对象
+            ///     4.对象: 需要激活的选项卡的HTML DOM对象(理论上此类型无法起作用)
+            ///     5.对象: 需要激活的选项卡的jQuery对象(理论上此类型无法起作用)
             active: null,
+            /// 选项卡的激活方式, 可选值如下:
+            ///     1. 'click' : 鼠标点击
+            ///     2. 'hover' : 鼠标经过
+            activeType: "click",
             /// 自动为选项卡添加CSS编号
             autoTabId: false,
             /// 选项卡的CSS编号值前缀(符合CSS命名规则的字符串), 只有在 autoTabId 为 true 时有效
@@ -165,19 +174,21 @@
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
-            /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
-            /// onTabClick: function(api, content, panel, event){}
+            /// 所有选项卡按钮的默认'激活'事件, 发生在选项卡的onActive事件之前; 
+            /// 若返回false, 则激活事件中断, 后续的激活操作将被忽略
+            /// onTabActive: function(api, content, panel, event){}
             /// api: 插件的api引用
             /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
-            onTabClick: null,
-            /// 所有选项卡按钮的默认'点击后'事件
+            onTabActive: null,
+            /// 所有选项卡按钮的默认'激活后'事件, 发生在选项卡的onActive事件之后
             /// (函数形式与'点击'事件相同, 下同)
-            onTabClicked: null,
-            /// 所有选项卡按钮的默认'关闭'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
+            onTabActived: null,
+            /// 所有选项卡按钮的默认'关闭'事件, 发生在选项卡的onClose事件之前; 
+            /// 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
-            /// 所有选项卡按钮的默认'关闭后'事件
+            /// 所有选项卡按钮的默认'关闭后'事件, 发生在选项卡的onClose事件之后
             onTabClosed: null,
             /// 当使用'添加按钮'添加一个选项卡后触发, 返回false将可以阻止插件创建选项卡
             /// onAddClick: function(tab, api){}
@@ -196,6 +207,8 @@
             /// api: 插件的api引用
             onReady: null
         },
+        /// 可选的激活方式
+        ActiveType: ["click", "hover"],
         /// 用于计算选项卡插件的UID
         TabViewCount: 0,
         /// 选项卡的标记名命名空间(主要用于 $.data())
@@ -799,7 +812,8 @@
                                 txt.val("");
                                 // 显示进级面板
                                 C.ShowAdvance();
-                                // 激发失去焦点事件(若在进级面板显示之前就调用,将导致进级面板不会显示--谷歌浏览器)
+                                // 激发失去焦点事件 (若在进级面板显示之前就调用,
+                                // 将导致进级面板不会显示,主要是因为 add对象 从DOM中移除的时机问题--谷歌浏览器)
                                 txt.blur();
                             }
                         });
@@ -918,7 +932,7 @@
                 tabBtn.addClass("TabActive");
                 return tabBtn;
             };
-            TabConfig.prototype.ShowActiveTab = function (tabBtn) {
+            TabConfig.prototype.ShowActiveTab = function (tabBtn, args) {
                 ///<summary>
                 /// 显示激活的选项卡
                 ///</summary>
@@ -931,14 +945,38 @@
 
                 if((tabBtn == null) || (tab == null) || (tab.enable === false)){
                     return null;
-                }else{
-                    C.SetActiveTab(tabBtn);
                 }
-                // 移动以显示按钮
-                C.MoveToTabButton(tabBtn);
-
                 // 获取对应激活的面板
                 var panel = C.GetPanelObject(tabBtn);
+                var pack = null;
+                // 面板的内部容器
+                var content = null;
+                if(panel != null){
+                    pack = panel.children(".TabPanelPackage");
+                    // 获取面板的内容对象
+                    content = pack.children(".TabContent").eq(0);
+                    if(content.length <= 0){
+                        content = $("<div class='TabContent' />");
+                        pack.html("");
+                        pack.append(content);
+                    }
+                }
+                // 执行选项卡的激活事件
+                if(args == null){
+                    args = [];
+                    args[0] = S.GetAPI(C.TabView);
+                    args[1] = content;
+                    args[2] = panel;
+                }
+                if(S.Exec(tab.onActive, args, tabBtn) === false){
+                    // 返回false, 告知激活事件执行后需要终止激活操作
+                    return false;
+                }else{
+                    C.SetActiveTab(tabBtn);
+                    // 移动以显示按钮
+                    C.MoveToTabButton(tabBtn);
+                }
+
                 if(panel != null){
                     var panels = $(".TabPanelsArea", C.TabView).eq(0).children(".TabPanel");
                     // 如果面板不是显示出来的
@@ -950,7 +988,6 @@
                         panel.css("opacity", 0);
                         panel.show();
                         panel.css("z-index", 0);
-                        var pack = panel.children(".TabPanelPackage");
                         // 获取默认内边距
                         var p = !S.isType(C.option.panelPadding, "Number") ? 0 : C.option.panelPadding;
                         // 获取选项卡单独设置的内边距(如果有)
@@ -964,13 +1001,6 @@
                         pack.css("top", p + "px");
                         // 动画效果显示面板
                         panel.animate({opacity: "+=1"}, "slow", function(){
-                            // 获取面板的内容对象
-                            var content = pack.children(".TabContent").eq(0);
-                            if(content.length <= 0){
-                                content = $("<div class='TabContent' />");
-                                pack.html("");
-                                pack.append(content);
-                            }
                             // ajax功能代码 ...
                             // 获取用户的ajax设置
                             var ajax = tab.ajax;
@@ -1039,6 +1069,23 @@
                                 var url = content.data(S.Tag.IframeURL);
                                 // 如果是url,则说明content是iframe元素,设置其src
                                 if(S.isURL(url)){
+                                    // var temp = $(".TabContent", pack);
+                                    // if(temp.length < 2){
+                                    //     temp = $("<div class='TabContent TabLoading'>" + url + "</div>");
+                                    // }else{
+                                    //     temp = temp.eq(1);
+                                    // }
+                                    // content.load(function(event){
+                                    //     content.show();
+                                    //     temp.remove();
+                                    // }).hide();
+                                    // pack.append(temp);
+                                    content.addClass("TabLoading");
+                                    content.load(function(){
+                                        content.removeClass("TabLoading");
+                                        // content.show();
+                                    });
+
                                     content.attr("src", url);
                                 }
                             }
@@ -1082,10 +1129,19 @@
 
                 var disable = 0.4;
 
+                // 绑定其它激活方式
+                if(C.option.activeType === S.ActiveType[1]){
+                    btn.mouseover(function(){
+                        btn.click();
+                    });
+                }
+
+                if($.isFunction(tab.onClick)){
+                    tab.onActive = tab.onClick;
+                }
+
                 // 绑定事件
                 btn.click(function (event) {
-                    // 如果使用者点击的是 关闭按钮
-                    //if ($(event.target).hasClass("TabCloseButton")){ return false;}
                     btn.children(".TabButtonPackage").css("opacity", 1);
                     btn.children(".TabCloseButton").css("opacity", 1);
                     if(S.GetTabOption(btn).enable === false){
@@ -1104,15 +1160,17 @@
                         // 如果不是特殊按钮(即,是普通的选项卡按钮)
                         if( btn.data(S.Tag.TabSpec) !== S.Tag.TabSpec){
                             // 执行选项卡默认点击事件,并检测其返回值
-                            if(S.Exec(C.option.onTabClick, [api, content, panel, event], btn) !== false){
-                                // 执行用户设置的点击事件,并检测其返回值
-                                if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
+                            if(S.Exec(C.option.onTabActive, [api, content, panel, event], btn) !== false){
+                                // // 执行用户设置的点击事件,并检测其返回值
+                                // if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
+                                // 执行用户设置的点击事件或onActive事件,并检测其返回值
+                                if(C.ShowActiveTab(btn, [api, content, panel, event]) !== false){
                                     // 返回值不为 false 则继续执行默认的点击操作
 
-                                    // 将指定选项卡按钮设置为激活按钮并显示
-                                    C.ShowActiveTab(btn);
+                                    // // 将指定选项卡按钮设置为激活按钮并显示, 执行激活事件
+                                    // if(C.ShowActiveTab(btn, event) === false){ return; }
                                     // 执行选项卡默认点击后事件
-                                    S.Exec(C.option.onTabClicked, [api, content, panel, event], btn); } }
+                                    S.Exec(C.option.onTabActived, [api, content, panel, event], btn); } }
                         }else{
                             // 执行按钮的点击事件
                             S.Exec(tab.onClick, [C, api, event], btn); }
@@ -1123,7 +1181,6 @@
                     || ((typeof tab.closable != "boolean") && (C.option.tabClosable === true))){
                     var msg = C.option.tabMessage.Close;
                     if(tab.closeMessage != null){ msg = tab.closeMessage;}
-                    //var closeBtn = $("<div class='TabCloseButton' title='" + msg + "'>×</div>");
                     var closeBtn = $("<div class='TabCloseButton' title='" + msg + "'/>");
                     btn.append(closeBtn);
                     closeBtn.click(function (event) {
@@ -1442,38 +1499,24 @@
                         var content = $("<div class='TabContent'/>");
 
                         var tcont = tab.content;
-                        // 捕获可能出现的跨域问题所产生的错误
-                        try{
-                            // 优先使用ajax
-                             if(!S.isType(tab.ajax, "String") && (tab.ajax == null)){
-                                if(S.isType(tcont, "String") || S.isType(tcont, "Object")){
-                                    var cont = $(tcont);
-                                    // 如果是选择器字符串,jQuery对象 或 HTML DOM对象
-                                    if(cont.length > 0){
-                                        content.append(cont);
-                                    // 如果是一个URL字符串
-                                    }else if(S.isURL(tcont)){
-                                        // 使用内联框架
-                                        content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
-                                            + tcont + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</iframe>");
-                                        // 如果载入错误,则尝试调整url
-                                        content.error(function(){
-                                            this.src = "http://" + tcont;
-                                        })
-                                        // 保存url
-                                        content.data(S.Tag.IframeURL, tcont);
-                                        // content.attr("src", tcont);
-                                    }
+                        // 优先使用ajax
+                         if(!S.isType(tab.ajax, "String") && (tab.ajax == null)){
+                            if(S.isType(tcont, "String") || S.isType(tcont, "Object")){
+                                var cont = $(tcont);
+                                // 如果是选择器字符串,jQuery对象 或 HTML DOM对象
+                                if(cont.length > 0){
+                                    content.append(cont);
+                                // 如果是一个URL字符串
+                                }else if(S.isURL(tcont)){
+                                    // 使用内联框架(iframe不支持error事件,但火狐<10.0.2>列外)
+                                    content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
+                                        + tcont + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</iframe>");
+                                    // 保存url
+                                    content.data(S.Tag.IframeURL, tcont);
                                 }
                             }
-                            panel.children(".TabPanelPackage").append(content);
-
-                            // content.append(">>> " + tabBtn.data(S.Tag.TabUID));
-                        }catch(err){
-                            content.remove();
-                            panel.children(".TabPanelPackage").append("<div class='TabContent'>" 
-                                + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</div>");
                         }
+                        panel.children(".TabPanelPackage").append(content);
                     }
                 }
 
@@ -1829,11 +1872,9 @@
                 var l = tabs.length - 1
                 for (i = 0; i <= l; i++) {
                     //var w = tabs[i].get(0).clientWidth;
-                    var w = tabs[i].get(0).offsetWidth;
+                    // var w = tabs[i].get(0).offsetWidth;
+                    var w = tabs[i].outerWidth();
                     if (w != 0) {
-//                        // 选项卡本身的宽度 + 左右边框宽度 + 选项卡间的间距
-//                        var border = S.GetBorderWidth(tabs[i], 0, false);
-//                        width += w + (border.left + border.right) + spac;
                         width += w; 
                         // 最后一个不加间隔
                         if( i < l){ width += spac;}
@@ -1906,7 +1947,6 @@
                 } else {
                     this.TabsMoveObj.MinOffset = 0; }
                 this.TabsMoveObj.toString(this.TabView, "刷新选项卡组移动数据信息,");
-                //CC("刷新选项卡组移动数据信息, 选项卡组最大可偏移横坐标: " + this.TabsMoveObj.MinOffset, this.TabView);
             };
             TabConfig.prototype.UseScroll = function (use) {
                 ///<summary>
@@ -2073,7 +2113,10 @@
                 if(mask.length <= 0){
                     mask = $("<div class='JQueryTabViewMask'/>");
                     mask.click(function(){
-                        C.CloseAdvance();
+                        // 如果当前不是出于动画状态
+                        if(!mask.is(":animated")){
+                            C.CloseAdvance();
+                        }
                     });
                     body.append(mask);
                 }
@@ -2241,7 +2284,7 @@
                         $("body").append(advance);
 
                         var prefix = "JQueryTabViewAdvance_";
-                        var tempStr_0 = "<tr><td class='TabAdvanceLabel'>{0}</td><td class='TabAdvanceInput'>{1}</td></tr>";
+                        var tempStr_0 = "<tr><td class='TabAdvanceLabel TabBlockStyleBlue'>{0}</td><td class='TabAdvanceInput'>{1}</td></tr>";
                         var tempStr_1 = S.StringFormat(tempStr_0, ["{0}", "<input type='{2}' id='" + prefix + "{1}'/>"]);
                         var tempStr = S.StringFormat(tempStr_1, ["{0}", "{1}", "text"]);
 
@@ -2256,11 +2299,11 @@
                             + "</table>");
 
                         // 内容 选项卡内部内容
-                        var cont = $("<div><div><div class='TabAdvanceLabel TabAdvanceLabel_2'>"
+                        var cont = $("<div><div><div class='TabAdvanceLabel_2'>"
                                 + "<input type='radio' name='JQueryTabViewAdvance_Content' value='content'/> Content"
-                                + "</div><div style='position:relative;border: 1px solid #ade;'>"
+                                + " <span style='font-size:15px;'>( HTML , URL or CSS Selector )</span></div><div style='position:relative;border: 1px solid #ade;'>"
                                 + "<div class='JQueryTabViewMask'></div><textarea rows='3' id='" + prefix + "content'></textarea>"
-                                + "</div></div><div><div class='TabAdvanceLabel TabAdvanceLabel_2'>"
+                                + "</div></div><div><div class='TabAdvanceLabel_2'>"
                                 + "<input type='radio' name='JQueryTabViewAdvance_Content' value='ajax'/> Ajax"
                                 + "</div><div style='position:relative;'><div class='JQueryTabViewMask'></div>"
                                 + "<table class='TabAdvanceExtend' cellspacing='0' cellpadding='0'>"
@@ -2286,20 +2329,31 @@
                         adPack.JQueryTabView({
                             tabs: [{
                                 caption: "常规",
-                                content: basic
+                                content: basic,
+                                onActive: function(api, content, panel){
+                                    panel.parents(".TabPanelsArea").eq(0).css("border-right-style", "solid").css("border-bottom-style", "solid");
+                                }
                             },{
                                 caption: "内容",
-                                content: cont
+                                content: cont,
+                                onActive: function(api, content, panel){
+                                    panel.parents(".TabPanelsArea").eq(0).css("border-style", "none");
+                                }
                             },{
                                 caption: "外观",
-                                content: gui
+                                content: gui,
+                                onActive: function(api, content, panel){
+                                    panel.parents(".TabPanelsArea").eq(0).css("border-right-style", "solid").css("border-bottom-style", "solid");
+                                }
                             },{
                                 caption: "事件",
                                 title: "'事件'当前不可用",
                                 enable: false
                             }],
                             active: 1,
+                            activeType: "hover",
                             spacing: 0,
+                            // panelHeight: 430,
                             panelPadding: 0,
                             tabWidth: 127,
                             tabHeight: 28,
@@ -2309,29 +2363,27 @@
                             onReady: function(adAPI){
                                 // 保存api
                                 S.SetAPI(advance, adAPI);
+                                // 获取配置对象
+                                var adC = S.GetConfig(this);
 
                                 advance.width(550);
 
-                                var adBtns = advance.find(".TabButton").css("background-image", "none");
-                                adBtns.css("border", "1px solid #adf");
-                                adBtns.css("border-bottom-color", "transparent");
+                                advance.find(".TabButton").css("background-image", "none").css("border", "1px solid #adf").css("border-bottom-color", "transparent");
                                 // 设置内容高度
-                                var adPHeight = 550 * 0.618;
+                                // var adPHeight = 550 * 0.618 - (adC.option.panelPadding * 2);
+                                var adPHeight = adC.option.panelHeight - (adC.option.panelPadding * 2);
                                 basic.height(adPHeight);
                                 gui.height(adPHeight);
-                                cont.height(adPHeight);
-                                cont.css("overflow", "hidden");
-                                cont.width($(".TabPanelsArea", adPack).innerWidth() - 2);
-                                var adExt = $(".TabAdvanceExtend", cont);
-                                adExt.height(adPHeight - cont.children("div").eq(0).outerHeight() 
-                                    - $(".TabAdvanceLabel_2", cont).eq(1).outerHeight());
+                                cont.height(adPHeight).css("overflow", "hidden").width($(".TabPanelsArea", adPack).innerWidth() - 2);
+                                $(".TabAdvanceExtend", cont).height(adPHeight - cont.children("div").eq(0).outerHeight() 
+                                        - $(".TabAdvanceLabel_2", cont).eq(1).outerHeight() - 4);
 
                                 // 获取'内容'选项卡中的单选框
                                 var radio = $("input:radio", cont);
                                 radio.click(function(event){
                                     $(".JQueryTabViewMask", cont).show();
-                                    $(".TabAdvanceLabel_2", cont).removeClass("TabAdvanceLabelDisable");
-                                    $(this).parent(".TabAdvanceLabel_2").addClass("TabAdvanceLabelDisable").next("div").children(".JQueryTabViewMask").hide();
+                                    $(".TabAdvanceLabel_2", cont).removeClass("TabDisable").addClass("TabBlockStyleGreen");
+                                    $(this).parent(".TabAdvanceLabel_2").addClass("TabDisable").removeClass("TabBlockStyleGreen").next("div").children(".JQueryTabViewMask").hide();
                                     // 因为给 该元素C 的 父元素P 也绑定了click事件(事件中会调用C的click事件),
                                     // 所以如果不添加下句将导致程序出错!
                                     event.stopPropagation();
@@ -2358,6 +2410,10 @@
                                         ///<summary>
                                         /// 根据指定的选项卡设置对象来对进级面板中的控件进行设置
                                         ///</summary>
+                                        // 如果进级设置面板不直接处于body之下,则将进级面板移动到body下面
+                                        if(advance.parent("body").length < 1){
+                                            $("body").append(advance);
+                                        }
                                         if(tab == null){
                                             tab = $.extend({}, dfop.tabs);
                                         }
@@ -2477,6 +2533,12 @@
                                                 tab.ajax = null;
                                             }
                                         }
+                                        if(tab.cssId == ""){
+                                            tab.cssId = null;
+                                        }
+                                        if(tab.cssClass == ""){
+                                            tab.cssClass = null;
+                                        }
                                         if(!S.isURL(tab.image)){
                                             tab.image = null;
                                         }
@@ -2526,7 +2588,6 @@
                                     if(C == null){ return; }
                                     var view = C.TabView;
                                     // 选项卡设置对象
-                                    // var tab = $.extend({}, dfop.tabs);
                                     var tab = advance.get(0).GetTabOption(C.option);
                                     if(S.Exec(C.option.onAddClick, [tab, S.GetAPI(view)], view) !== false){
                                         // 添加一个选项卡
@@ -2548,6 +2609,7 @@
                 }else{
                     // 若不生成工具,则必须默认可滚动
                     op.scrollable = true;
+                    op.noAdvance = true;
                 }
                 CC("插件HTML内部结构构造完毕", view);
                 /// =================================
@@ -2720,6 +2782,8 @@
             ////////////// 对插件设置进行检查 //////////
             // 如果使用者没有添加选项卡
             if(S.isType(setting.tabs, "Undefined")){ op.tabs = null; }
+            // 调整激活方式
+            op.activeType = S.Trim(op.activeType).toLowerCase();
             // 检查最小高度
             if (!S.isType(op.tabMinHeight, "Number")){
                 op.tabMinHeight = S.defaultOption.tabMinHeight;

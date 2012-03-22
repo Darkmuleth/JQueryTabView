@@ -176,6 +176,7 @@
     background-image: url("image/tab_bg_01.png");
     background-repeat: repeat;
     background-position: 0 21px;
+    text-shadow: #345 2px 2px 2px;
 }
 .TabMainArea .TabButtonArea > .TabButton:hover
 {
@@ -388,7 +389,8 @@
 {
     background-color: #fff;
 }
-.TabAdvance input[type='text'], .TabAdvance textarea
+.TabAdvance input[type='text'], 
+.TabAdvance textarea
 {
     width: 100%;
     height: 100%;
@@ -399,34 +401,14 @@
 }
 .TabAdvance select
 {
-    width: 98%;
+    width: 100%;
+    height: 100%;
 }
 .TabAdvance input[type='button']
 {
     width: 100px;
     height: 25px;
     cursor: pointer;
-    border: 1px solid #46b;
-    border-top-color: #adf;
-    background-color: #59d;
-    border-bottom-width: 2px;
-    color: #fff;
-    text-shadow: #35a 2px 2px 2px;
-    font-weight: bold;
-}
-.TabAdvance input[type='button'][value='OK']:hover
-{
-    border-color: #182;
-    border-top-color: #9ec;
-    background-color: #3b6;
-    text-shadow: #162 2px 2px 2px;
-}
-.TabAdvance input[type='button'][value='Cancel']:hover
-{
-    border-color: #a22;
-    border-top-color: #ecc;
-    background-color: #d44;
-    text-shadow: #622 2px 2px 2px;
 }
 .TabAdvance > .TabAdvanceTitle
 {
@@ -447,17 +429,6 @@
 {
     width: 200px;
     /*height: 35px;*/
-    border: 1px solid #46b;
-    border-top-color: #adf;
-    background-color: #59d;
-    font-weight: bold;
-    font-size: 20px;
-    color: #fff;
-    text-shadow: #35a 2px 2px 2px;
-}
-.TabAdvance table tr:hover .TabAdvanceLabel
-{
-    background-color: #6bf;
 }
 .TabAdvance .TabAdvanceInput
 {
@@ -471,29 +442,79 @@
     text-align:left;
     width:100%;
     height: 30px;
-    border: 1px solid #182;
-    border-top-color: #9ec;
-    background-color: #3b6;
-    text-shadow: #162 2px 2px 2px;
     cursor: pointer;
-}
-.TabAdvance .TabAdvanceLabel_2:hover
-{
-    background-color: #4c9;
 }
 .TabAdvance .TabAdvanceLabel_2 > input[type='radio']
 {
     margin-left: 10px;
 }
-.TabAdvance .TabAdvanceLabel.TabAdvanceLabelDisable
+.TabAdvance .TabDisable
+{
+    cursor: default;
+}
+
+/*************************通用外观样式*********************************************/
+
+/* 字体方案1: 加粗白色大字体 */
+.TabAdvance .TabFontStyleType1, 
+.TabAdvance .TabAdvanceLabel, 
+.TabAdvance .TabAdvanceLabel_2
+{
+    font-weight: bold;
+    font-size: 20px;
+    color: #fff;
+    text-shadow: #444 2px 2px 2px;
+}
+/* 字体方案2: 加粗白色字体 */
+.TabAdvance .TabFontStyleType2, 
+.TabAdvance input[type='button']
+{
+    font-weight: bold;
+    /*font-size: medium;*/
+    color: #fff;
+    text-shadow: #444 2px 2px 2px;
+}
+
+/* 蓝色整体方案 */
+.TabAdvance .TabBlockStyleBlue, 
+.TabAdvance .TabDisable, 
+.TabAdvance input[type='button']
 {
     border: 1px solid #46b;
     border-top-color: #adf;
     background-color: #59d;
     text-shadow: #35a 2px 2px 2px;
-    cursor: default;
 }
-.TabAdvance .TabAdvanceLabel.TabAdvanceLabelDisable:hover
+.TabAdvance .TabBlockStyleBlue:hover, 
+.TabAdvance tr:hover .TabBlockStyleBlue
 {
-    background-color: #59d;
+    background-color: #6bf;
+}
+
+/* 绿色整体方案 */
+.TabAdvance .TabBlockStyleGreen, 
+.TabAdvance input[type='button'][value='OK']:hover
+{
+    border: 1px solid #182;
+    border-top-color: #9ec;
+    background-color: #3b6;
+    text-shadow: #162 2px 2px 2px;
+}
+.TabAdvance .TabBlockStyleGreen:hover
+{
+    background-color: #4c9;
+}
+
+/* 红色整体方案 */
+.TabAdvance .TabBlockStyleRed, 
+.TabAdvance input[type='button'][value='Cancel']:hover
+{
+    border: 1px solid #a22;
+    border-top-color: #ecc;
+    background-color: #d44;
+    text-shadow: #622 2px 2px 2px;
+}
+.TabAdvance .TabBlockStyleRed:hover
+{
+    background-color: #f88;
 }

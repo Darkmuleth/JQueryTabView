@@ -154,13 +154,18 @@
                 // 面板的内边距(像素)
                 panelPadding: null,
                 /////////////////// 以下是事件设置 ////////////////////
-                // 点击选项卡事件
+                // 点击选项卡事件, 此事件将导致选项卡激活
+                // 若返回false, 则点击事件中断, 后续的激活操作将被忽略
                 // onClick: function(api, content, panel, event){}
                 // api: 插件的api引用
                 // content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
                 // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
+                // 激活选项卡事件; 发生在onClick事件之后,onTabActived事件之前,
+                // 若返回false, 则激活事件中断, 后续的激活操作将被忽略
+                // 函数形式与点击事件相同(其中函数的event参数当且仅当onActive事件是直接由选项卡按产生时才会存在)
+                onActive: null,
                 // 关闭选项卡事件
                 // 函数形式与点击事件相同
                 onClose: null
@@ -171,9 +176,13 @@
             ///     1.整数: 位置序号(从0开始计算)
             ///     2.字符串: 选项卡按钮的CSS的id选择器,必须以'#'字符串开头
             ///     3.字符串: 选项卡按钮的CSS的class选择器,必须以'.'字符串开头, 只激活第一个找到的匹配项
-            ///     4.对象: 需要激活的选项卡的HTML DOM对象
-            ///     5.对象: 需要激活的选项卡的jQuery对象
+            ///     4.对象: 需要激活的选项卡的HTML DOM对象(理论上此类型无法起作用)
+            ///     5.对象: 需要激活的选项卡的jQuery对象(理论上此类型无法起作用)
             active: null,
+            /// 选项卡的激活方式, 可选值如下:
+            ///     1. 'click' : 鼠标点击
+            ///     2. 'hover' : 鼠标经过
+            activeType: "click",
             /// 自动为选项卡添加CSS编号
             autoTabId: false,
             /// 选项卡的CSS编号值前缀(符合CSS命名规则的字符串), 只有在 autoTabId 为 true 时有效
@@ -226,19 +235,21 @@
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
-            /// 所有选项卡按钮的默认'点击'事件; 若返回false, 则点击事件中断, 后续的点击操作将被忽略
-            /// onTabClick: function(api, content, panel, event){}
+            /// 所有选项卡按钮的默认'激活'事件, 发生在选项卡的onActive事件之前; 
+            /// 若返回false, 则激活事件中断, 后续的激活操作将被忽略
+            /// onTabActive: function(api, content, panel, event){}
             /// api: 插件的api引用
             /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
-            onTabClick: null,
-            /// 所有选项卡按钮的默认'点击后'事件
+            onTabActive: null,
+            /// 所有选项卡按钮的默认'激活后'事件, 发生在选项卡的onActive事件之后
             /// (函数形式与'点击'事件相同, 下同)
-            onTabClicked: null,
-            /// 所有选项卡按钮的默认'关闭'事件; 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
+            onTabActived: null,
+            /// 所有选项卡按钮的默认'关闭'事件, 发生在选项卡的onClose事件之前; 
+            /// 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
-            /// 所有选项卡按钮的默认'关闭后'事件
+            /// 所有选项卡按钮的默认'关闭后'事件, 发生在选项卡的onClose事件之后
             onTabClosed: null,
             /// 当使用'添加按钮'添加一个选项卡后触发, 返回false将可以阻止插件创建选项卡
             /// onAddClick: function(tab, api){}
