@@ -348,6 +348,32 @@
             }
             return obj;
         },
+        ClearIframe: function(objs){
+            ///<summary>
+            /// 清理指定的iframe元素, 防止内存泄露
+            ///</summary>
+            for(i=0; i < objs.length; i++){
+                var obj = objs.eq(i),
+                    ele = obj.get(0), 
+                    iframe = ele.contentWindow;
+                if(ele){
+                    ele.src = "about:blank";
+                    try{
+                        iframe.document.write("");
+                        iframe.document.clear();
+                    }catch(e){
+                        // $("body").before("<br/>" + e);
+                    }
+                    // document.body.removeChild(ele);
+                    // obj.remove();
+                    obj.parent().get(0).removeChild(ele);
+                    obj = ele = iframe = void(0);
+                }
+            }
+            if(window.CollectGarbage){
+                CollectGarbage();
+            }
+        },
         MoveToWindowCenter: function(ele){
             ///<summary>
             /// 将指定元素移动到窗口正中央
@@ -1069,21 +1095,20 @@
                                 var url = content.data(S.Tag.IframeURL);
                                 // 如果是url,则说明content是iframe元素,设置其src
                                 if(S.isURL(url)){
-                                    // var temp = $(".TabContent", pack);
-                                    // if(temp.length < 2){
-                                    //     temp = $("<div class='TabContent TabLoading'>" + url + "</div>");
-                                    // }else{
-                                    //     temp = temp.eq(1);
-                                    // }
-                                    // content.load(function(event){
-                                    //     content.show();
-                                    //     temp.remove();
-                                    // }).hide();
-                                    // pack.append(temp);
-                                    content.addClass("TabLoading");
-                                    content.load(function(){
+                                    var isHide = $("iframe.TabContent", panel).is(":hidden");
+                                    // 清理内联框架
+                                    S.ClearIframe($("iframe", panel));
+                                    content.remove();
+                                    // 新建内联框架
+                                    content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
+                                        + url + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + url + "'</iframe>");
+                                    content.data(S.Tag.IframeURL, url);
+                                    pack.append(content);
+                                    if(isHide === true){
+                                        content.hide();
+                                    }
+                                    content.addClass("TabLoading").load(function(){
                                         content.removeClass("TabLoading");
-                                        // content.show();
                                     });
 
                                     content.attr("src", url);
@@ -1509,8 +1534,8 @@
                                 // 如果是一个URL字符串
                                 }else if(S.isURL(tcont)){
                                     // 使用内联框架(iframe不支持error事件,但火狐<10.0.2>列外)
-                                    content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
-                                        + tcont + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</iframe>");
+                                    // content = $("<iframe class='TabContent' height='100%' width='100%' frameborder='0' scrolling='auto' onerror=\"this.src='http://" 
+                                    //     + tcont + "';\" >" + C.option.tabMessage.ConnectFail + ": '" + tcont + "'</iframe>");
                                     // 保存url
                                     content.data(S.Tag.IframeURL, tcont);
                                 }
@@ -1588,6 +1613,8 @@
                 panel.animate({height: 0, opacity: 0}, 500, function () {
                     // 从数组中移除
                     C.PanelArray.splice(panel.data('PanelArrayIndex'), 1);
+                    // 清除可能存在的iframe
+                    S.ClearIframe($("iframe", panel));
                     // 从页面中移除
                     panel.remove();
                 });
@@ -2639,7 +2666,11 @@
                 if(C.CanScroll() == false){ $(".TabAddButton", rightTool).hide();};
 
                 // 高度设置为与选项卡组的按钮一样(不含边框)
-                var h = btnArea.children(".TabButton").eq(0).get(0).clientHeight;
+                var h = op.tabHeight;
+                var temp = btnArea.children(".TabButton").eq(0).get(0);
+                if((op.noTools !== true) && (temp != null)){
+                    h = temp.clientHeight;
+                }
                 C.SetElementHeight(leftBtn, h);
                 C.SetElementWidth(leftBtn, 15);
                 C.SetElementHeight(rightBtn, h);
@@ -2883,6 +2914,11 @@
             // 保存api句柄
             S.SetAPI(view, api);
             //////// 精确 API 设置结束 /////////////////////////////////////////////////////
+
+            // 绑定窗口的卸载事件,清理可能存在的iframe
+            $(window).unload(function(){
+                S.ClearIframe($("iframe", view));
+            });
 
             CC("==== 初始化完成 ====\n\n", view);
 
