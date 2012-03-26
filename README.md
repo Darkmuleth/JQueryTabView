@@ -278,6 +278,8 @@
 	api = {
                 /// 获取当前插件对象在选项卡列表中的序号
                 GetTabViewIndex: function(){},
+                /// 移除指定插件对象, 若不提供目标对象则移除当前容器中的选项卡插件
+                RemoveTabView: function(view){},
                 /// 获取选项卡插件的uid
 				GetTabViewUID: function(){},
                 /// 获取配置对象

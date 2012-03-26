@@ -501,6 +501,20 @@
                 $.fn.JQueryTabView.TabViewArray = new Array(); }
             $.fn.JQueryTabView.TabViewArray.push(view);
         },
+        Logout: function(view){
+            ///<summary>
+            /// 注销选项卡插件(不会从DOM中移除选项卡插件)
+            ///</summary>
+            var rsView = null;
+            var views = $.fn.JQueryTabView.TabViewArray;
+            if(views instanceof Array){
+                var i = S.GetTabViewIndex(view);
+                if( i >= 0){
+                    rsView = views.splice(i, 1)[0];
+                }
+            }
+            return rsView;
+        },
         ExtendTabs: function(tabs){
             ///<summary>
             /// 扩展指定的选项卡设置,让其具备完整的配置
@@ -536,13 +550,34 @@
         ////////// 可供外部使用的API函数的主体部分 //////////////
         GetTabViewIndex: function(view){
             ///<summary>
-            /// 获取当前插件对象在选项卡列表中的序号
+            /// 获取当前插件对象在选项卡列表中的序号, 不存在则返回-1
             ///</summary>
             var views = $.fn.JQueryTabView.TabViewArray;
-            var i;
-            for(var i=0,l=views.length; i<l; i++){
-                if(views[i].data(S.Tag.ViewUID) == view.data(S.Tag.ViewUID)){ break;} }
-            return (i - 1);
+            var i = -1;
+            if(views instanceof Array){
+                var uid = view;
+                if(view instanceof $){
+                    uid = S.GetTabViewUID(view);
+                }
+                $.each(views, function(index, val) {
+                    if(S.GetTabViewUID(val) == uid){
+                        i = index;
+                        return false;
+                    }
+                });
+            }
+            return i;
+        },
+        GetTabView: function(viewUID){
+            ///<summary>
+            /// 根据UID获取插件对象
+            ///</summary>
+            var view = null;
+            var views = $.fn.JQueryTabView.TabViewArray;
+            if(views instanceof Array){
+                view = views[S.GetTabViewIndex("" + viewUID)];
+            }
+            return view;
         },
         GetDefaultOption: function(){
             ///<summary>
@@ -2875,6 +2910,16 @@
                     /// 获取当前插件对象在选项卡列表中的序号
                     return S.GetTabViewIndex(view);
                 },
+                RemoveTabView: function(_view){
+                    /// 移除指定插件对象, 若不提供目标对象则移除当前容器中的选项卡插件
+                    if(S.isType(_view, "Undefined")){
+                        _view = view;
+                    }
+                    _view = S.Logout(_view);
+                    if(_view != null){
+                        _view.remove();
+                    }
+                },
                 GetTabViewUID: function(){
                     /// 获取选项卡插件的uid
                     return S.GetTabViewUID(view);
@@ -2936,6 +2981,24 @@
             // 注意: 因为此处的插件对象(主区域对象)是查找目标区域的符合条件的第一个主区域对象,
             // 所以当目标区域中构造了多个选项卡插件后,将可能会导致取值不如人意(此后的类似方法都存在此问题)
             return S.GetTabViewIndex($(".TabMainArea", this).eq(0));
+        },
+        GetTabView: function(viewUID){
+            ///<summary>
+            /// 根据UID获取插件对象
+            ///</summary>
+            return S.GetTabView(viewUID);
+        },
+        RemoveTabView: function(view){
+            ///<summary>
+            /// 移除指定插件对象, 若不提供目标对象则移除当前容器中的选项卡插件
+            ///</summary>
+            if(S.isType(view, "Undefined")){
+                view = $(".TabMainArea", this).eq(0);
+            }
+            view = S.Logout(view);
+            if(view != null){
+                view.remove();
+            }
         },
         GetTabViewUID: function(){
             ///<summary>
