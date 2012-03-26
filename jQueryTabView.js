@@ -17,7 +17,8 @@
         ///</summary>
         if(msg){
             if(view){
-                if(S.GetConfig(view).option.debug == false){ return;}
+                var C = S.GetConfig(view);
+                if((typeof C == "undefined") || (C.option.debug == false)){ return;}
                 msg = S.GetTabViewUID(view) + " > " + msg; }
             Console.log(msg); }
     };
@@ -1001,10 +1002,12 @@
                 if(S.isType(tabBtn, "Undefined")){
                     tabBtn = C.GetActiveTab();
                 }
+                if(tabBtn == null){
+                    return null;
+                }
                 // 获取选项卡的设置对象
                 var tab = S.GetTabOption(tabBtn);
-
-                if((tabBtn == null) || (tab == null) || (tab.enable === false)){
+                if((tab == null) || (tab.enable === false)){
                     return null;
                 }
                 // 获取对应激活的面板
@@ -2691,8 +2694,13 @@
                     if(C.GetTabIndex(temp) > -1){
                         C.ShowActiveTab(temp);
                     }
-                }else if(typeof op.active == "object"){
-                    C.ShowActiveTab($(op.active));
+                }else{
+                    var act = $(op.active);
+                    if(act.length > 0){
+                        C.ShowActiveTab(act);
+                    }else if(C.TabArray.length > 0){
+                        C.ShowActiveTab();
+                    }
                 }
                 // 启用或禁用滚动功能
                 $.fx.off = true;
