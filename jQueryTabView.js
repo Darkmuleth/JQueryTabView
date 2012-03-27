@@ -102,10 +102,15 @@
                 // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
-                // 激活选项卡事件; 发生在onClick事件之后,onTabActived事件之前,
+                // 激活选项卡事件; 发生在onClick事件之后,onClicked事件之前,
+                // 不管使用者是否点击了选项卡按钮,只要选项卡正常激活,此事件都会发生
                 // 若返回false, 则激活事件中断, 后续的激活操作将被忽略
                 // 函数形式与点击事件相同(其中函数的event参数当且仅当onActive事件是直接由选项卡按产生时才会存在)
                 onActive: null,
+                // 点击选项卡后事件
+                // 若返回false, 则点击事件中断, 后续的事件将被忽略
+                // 函数形式与点击事件相同
+                onClicked: null,
                 // 关闭选项卡事件
                 // 函数形式与点击事件相同
                 onClose: null
@@ -175,17 +180,17 @@
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
-            /// 所有选项卡按钮的默认'激活'事件, 发生在选项卡的onActive事件之前; 
+            /// 所有选项卡按钮的默认'点击'事件, 发生在选项卡的onClick事件之前; 
             /// 若返回false, 则激活事件中断, 后续的激活操作将被忽略
-            /// onTabActive: function(api, content, panel, event){}
+            /// onTabClick: function(api, content, panel, event){}
             /// api: 插件的api引用
             /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
-            onTabActive: null,
-            /// 所有选项卡按钮的默认'激活后'事件, 发生在选项卡的onActive事件之后
+            onTabClick: null,
+            /// 所有选项卡按钮的默认'点击后'事件, 发生在选项卡的onClicked事件之后
             /// (函数形式与'点击'事件相同, 下同)
-            onTabActived: null,
+            onTabClicked: null,
             /// 所有选项卡按钮的默认'关闭'事件, 发生在选项卡的onClose事件之前; 
             /// 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
@@ -1199,10 +1204,6 @@
                     });
                 }
 
-                if($.isFunction(tab.onClick)){
-                    tab.onActive = tab.onClick;
-                }
-
                 // 绑定事件
                 btn.click(function (event) {
                     btn.children(".TabButtonPackage").css("opacity", 1);
@@ -1223,17 +1224,21 @@
                         // 如果不是特殊按钮(即,是普通的选项卡按钮)
                         if( btn.data(S.Tag.TabSpec) !== S.Tag.TabSpec){
                             // 执行选项卡默认点击事件,并检测其返回值
-                            if(S.Exec(C.option.onTabActive, [api, content, panel, event], btn) !== false){
+                            if(S.Exec(C.option.onTabClick, [api, content, panel, event], btn) !== false){
                                 // // 执行用户设置的点击事件,并检测其返回值
-                                // if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
-                                // 执行用户设置的点击事件或onActive事件,并检测其返回值
-                                if(C.ShowActiveTab(btn, [api, content, panel, event]) !== false){
-                                    // 返回值不为 false 则继续执行默认的点击操作
+                                if(S.Exec(tab.onClick, [api, content, panel, event], btn) !== false){
+                                    // 执行用户设置的点击事件或onActive事件,并检测其返回值
+                                    if(C.ShowActiveTab(btn, [api, content, panel, event]) !== false){
+                                        // 返回值不为 false 则继续执行默认的点击操作
 
-                                    // // 将指定选项卡按钮设置为激活按钮并显示, 执行激活事件
-                                    // if(C.ShowActiveTab(btn, event) === false){ return; }
-                                    // 执行选项卡默认点击后事件
-                                    S.Exec(C.option.onTabActived, [api, content, panel, event], btn); } }
+                                        // 执行选项卡自己的点击后事件
+                                        if(S.Exec(tab.onClicked, [api, content, panel, event], btn) !== false){
+                                            // 执行选项卡默认点击后事件
+                                            S.Exec(C.option.onTabClicked, [api, content, panel, event], btn); 
+                                        }
+                                    } 
+                                }
+                            }
                         }else{
                             // 执行按钮的点击事件
                             S.Exec(tab.onClick, [C, api, event], btn); }
@@ -2375,7 +2380,7 @@
                                 + S.StringFormat(tempStr, ["URL", "url"])
                                 + S.StringFormat(tempStr_0, ["Type", "<select id='" + prefix + "type'><option value='GET'>GET</option><option value='POST'>POST</option></select>"])
                                 + S.StringFormat(tempStr, ["Data Type", "dataType"])
-                                + S.StringFormat(tempStr_0, ["Data", "<textarea rows='4' id='" + prefix + "data'></textarea>"])
+                                + S.StringFormat(tempStr_0, ["Data<br/>(JSON格式)", "<textarea rows='4' id='" + prefix + "data'></textarea>"])
                                 + "</table></td></div></div>");
 
                         // 外观 选项卡内部内容

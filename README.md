@@ -9,9 +9,12 @@
 * 选项卡按钮滚动；
 * 选项卡按钮展开或收起；
 * 选项卡内容连接到其它网页；
-* ajax方式载入选项卡内容
+* ajax方式载入选项卡内容；
+* 其它一些附加的实验性功能
 
 项目：[JQueryTabView](https://github.com/Darkmuleth/JQueryTabView)
+
+DEMO: [JQueryTabView Demo](http://darkmuleth.github.com/Project/JQueryTabView_Demo.html)
 
 ## 作者
 
@@ -162,10 +165,15 @@
                 // panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
                 // event: jQuery的点击事件所传递的event对象
                 onClick: null,
-                // 激活选项卡事件; 发生在onClick事件之后,onTabActived事件之前,
+                // 激活选项卡事件; 发生在onClick事件之后,onClicked事件之前,
+                // 不管使用者是否点击了选项卡按钮,只要选项卡正常激活,此事件都会发生
                 // 若返回false, 则激活事件中断, 后续的激活操作将被忽略
                 // 函数形式与点击事件相同(其中函数的event参数当且仅当onActive事件是直接由选项卡按产生时才会存在)
                 onActive: null,
+                // 点击选项卡后事件
+                // 若返回false, 则点击事件中断, 后续的事件将被忽略
+                // 函数形式与点击事件相同
+                onClicked: null,
                 // 关闭选项卡事件
                 // 函数形式与点击事件相同
                 onClose: null
@@ -235,17 +243,17 @@
             /// debug模式(开启后将向浏览器控制台打印信息)
             debug: false,
             /////////////////// 以下是事件设置 ////////////////////
-            /// 所有选项卡按钮的默认'激活'事件, 发生在选项卡的onActive事件之前; 
+            /// 所有选项卡按钮的默认'点击'事件, 发生在选项卡的onClick事件之前; 
             /// 若返回false, 则激活事件中断, 后续的激活操作将被忽略
-            /// onTabActive: function(api, content, panel, event){}
+            /// onTabClick: function(api, content, panel, event){}
             /// api: 插件的api引用
             /// content: 选项卡对应的面板对象的'内容'对象,如果usePanel为false, 则值为null
             /// panel: 选项卡对应的面板对象,如果usePanel为false, 则值为null
             /// event: jQuery的点击事件所传递的event对象
-            onTabActive: null,
-            /// 所有选项卡按钮的默认'激活后'事件, 发生在选项卡的onActive事件之后
+            onTabClick: null,
+            /// 所有选项卡按钮的默认'点击后'事件, 发生在选项卡的onClicked事件之后
             /// (函数形式与'点击'事件相同, 下同)
-            onTabActived: null,
+            onTabClicked: null,
             /// 所有选项卡按钮的默认'关闭'事件, 发生在选项卡的onClose事件之前; 
             /// 若返回false, 则关闭事件中断, 后续的关闭操作将被忽略
             onTabClose: null,
@@ -267,6 +275,35 @@
             /// onReady: function(api){}
             /// api: 插件的api引用
             onReady: null
+        },
+        /// 可选的激活方式
+        ActiveType: ["click", "hover"],
+        /// 用于计算选项卡插件的UID
+        TabViewCount: 0,
+        /// 选项卡的标记名命名空间(主要用于 $.data())
+        Tag: {
+            /// 选项卡插件的uid标记名
+            ViewUID: "JQueryTabViewUID",
+            /// 选项卡API标记名
+            TabAPI: "TabViewAPI",
+            /// 选项卡Config标记名
+            TabConfig: "TabViewConfig",
+            /// 选项卡插件的滚动按钮启用/禁用标记名
+            ScollEnabled: "TabScollEnabled",
+            /// 选项卡按钮的UID标记名
+            TabUID: "TabButtonUID",
+            /// 选项卡按钮的序号标记名
+            TabIndex: "TabButtonIndex",
+            /// 选项卡按钮的设置对象标记名
+            TabOption: "TabButtonOption",
+            /// 特殊按钮标记名
+            TabSpec: "TabSpecialBtn",
+            /// 选项卡按钮连续移动标记名
+            TabsMove: "IsTabGoTo",
+            /// 选项卡定时器标记名
+            TabTimeOut: "TabsMoveTimeOut",
+            /// 内联框架的url标记名
+            IframeURL: "TabIframeURL"
         }
 ```
 
